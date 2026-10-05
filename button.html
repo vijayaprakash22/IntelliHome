@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>
+        IntelliHome - Button Control
+    </title>
+
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+
+            margin: 0;
+
+            font-family: Arial, sans-serif;
+
+            background: #f4f7fb;
+
+            color: #172033;
+
+        }
+
+
+        header {
+
+            text-align: center;
+
+            padding: 35px 15px;
+
+        }
+
+
+        header h1 {
+
+            margin: 5px 0;
+
+        }
+
+
+        .subtitle {
+
+            color: #667085;
+
+        }
+
+
+        .container {
+
+            width: 90%;
+
+            max-width: 1000px;
+
+            margin: auto;
+
+        }
+
+
+        .grid {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(
+                    auto-fit,
+                    minmax(250px, 1fr)
+                );
+
+            gap: 22px;
+
+        }
+
+
+        .card {
+
+            background: white;
+
+            border-radius: 20px;
+
+            padding: 30px;
+
+            text-align: center;
+
+            box-shadow:
+                0 8px 25px
+                rgba(0,0,0,0.08);
+
+        }
+
+
+        .icon {
+
+            font-size: 50px;
+
+        }
+
+
+        h2 {
+
+            margin: 12px 0 20px;
+
+        }
+
+
+        button {
+
+            width: 42%;
+
+            padding: 13px 10px;
+
+            margin: 5px;
+
+            border: none;
+
+            border-radius: 10px;
+
+            font-size: 16px;
+
+            font-weight: bold;
+
+            cursor: pointer;
+
+        }
+
+
+        .on {
+
+            background: #16a34a;
+
+            color: white;
+
+        }
+
+
+        .off {
+
+            background: #dc2626;
+
+            color: white;
+
+        }
+
+
+        .status {
+
+            margin-top: 15px;
+
+            font-weight: bold;
+
+        }
+
+
+        .back {
+
+            display: block;
+
+            width: 180px;
+
+            margin: 35px auto;
+
+            padding: 12px;
+
+            text-align: center;
+
+            text-decoration: none;
+
+            background: #172033;
+
+            color: white;
+
+            border-radius: 10px;
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<header>
+
+    <h1>
+        🎛️ IntelliHome Button Control
+    </h1>
+
+    <div class="subtitle">
+        Control your appliances manually
+    </div>
+
+</header>
+
+
+
+<div class="container">
+
+
+    <div class="grid">
+
+
+        <!-- FAN -->
+
+        <div class="card">
+
+            <div class="icon">
+                🌀
+            </div>
+
+            <h2>
+                Fan
+            </h2>
+
+
+            <button
+                class="on"
+                onclick="setDevice('V0', 1)">
+                ON
+            </button>
+
+
+            <button
+                class="off"
+                onclick="setDevice('V0', 0)">
+                OFF
+            </button>
+
+
+            <div
+                id="fanStatus"
+                class="status">
+
+                Status: OFF
+
+            </div>
+
+        </div>
+
+
+
+        <!-- LED -->
+
+        <div class="card">
+
+            <div class="icon">
+                💡
+            </div>
+
+            <h2>
+                LED
+            </h2>
+
+
+            <button
+                class="on"
+                onclick="setDevice('V1', 1)">
+                ON
+            </button>
+
+
+            <button
+                class="off"
+                onclick="setDevice('V1', 0)">
+                OFF
+            </button>
+
+
+            <div
+                id="ledStatus"
+                class="status">
+
+                Status: OFF
+
+            </div>
+
+        </div>
+
+
+
+        <!-- LED STRIP -->
+
+        <div class="card">
+
+            <div class="icon">
+                ✨
+            </div>
+
+            <h2>
+                LED Strip
+            </h2>
+
+
+            <button
+                class="on"
+                onclick="setDevice('V2', 1)">
+                ON
+            </button>
+
+
+            <button
+                class="off"
+                onclick="setDevice('V2', 0)">
+                OFF
+            </button>
+
+
+            <div
+                id="stripStatus"
+                class="status">
+
+                Status: OFF
+
+            </div>
+
+        </div>
+
+
+    </div>
+
+
+    <a
+        class="back"
+        href="index.html">
+
+        ← Back to Home
+
+    </a>
+
+
+</div>
+
+
+
+<script>
+
+
+// =================================================
+// BLYNK AUTH TOKEN
+// =================================================
+
+// Replace ONLY this value with your Blynk Auth Token.
+// Do NOT share your token.
+
+const BLYNK_TOKEN =
+    "lJgZ3C-OWVYFNTLIOb_3wobsZzHyHsFF";
+
+
+
+// =================================================
+// CONTROL APPLIANCE
+// =================================================
+
+function setDevice(pin, value) {
+
+
+    // Check token
+
+    if (
+        BLYNK_TOKEN ===
+        "PASTE_YOUR_BLYNK_AUTH_TOKEN_HERE"
+    ) {
+
+        alert(
+            "Please enter your Blynk Auth Token."
+        );
+
+        return;
+
+    }
+
+
+
+    // Blynk API URL
+
+    const url =
+
+        "https://blynk.cloud/external/api/update" +
+
+        "?token=" +
+
+        encodeURIComponent(BLYNK_TOKEN) +
+
+        "&" +
+
+        pin +
+
+        "=" +
+
+        value;
+
+
+
+    // Send request
+
+    const request = new Image();
+
+    request.src = url;
+
+
+
+    // Update webpage status
+
+    if (pin === "V0") {
+
+        document.getElementById(
+            "fanStatus"
+        ).innerText =
+
+            "Status: " +
+            (value === 1 ? "ON" : "OFF");
+
+    }
+
+
+    if (pin === "V1") {
+
+        document.getElementById(
+            "ledStatus"
+        ).innerText =
+
+            "Status: " +
+            (value === 1 ? "ON" : "OFF");
+
+    }
+
+
+    if (pin === "V2") {
+
+        document.getElementById(
+            "stripStatus"
+        ).innerText =
+
+            "Status: " +
+            (value === 1 ? "ON" : "OFF");
+
+    }
+
+}
+
+
+</script>
+
+
+</body>
+
+</html>

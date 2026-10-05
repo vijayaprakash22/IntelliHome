@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>IntelliHome Voice Control</title>
+
+    <style>
+
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: #f4f6f8;
+            margin: 0;
+            padding-top: 80px;
+        }
+
+        h1 {
+            font-size: 36px;
+        }
+
+        p {
+            font-size: 20px;
+        }
+
+        button {
+            font-size: 22px;
+            padding: 15px 30px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+        }
+
+        #heard {
+            margin-top: 30px;
+            font-size: 22px;
+        }
+
+        #status {
+            margin-top: 15px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+    <h1>🏠 IntelliHome Voice Control</h1>
+
+    <p>
+        Voice Commands:
+        <b>Enable Fan, Disable Fan , Enable Light, Disable Light, Enable Strip, Disable Strip</b>
+    </p>
+
+    <p>
+        Modes:
+        <b>Good night, Study mode on</b>
+    </p>
+
+
+    <button onclick="startVoice()">
+        🎤 Start Voice Command
+    </button>
+
+
+    <p id="heard">
+        Heard: —
+    </p>
+
+
+    <p id="status">
+        Status: Ready
+    </p>
+
+
+
+<script>
+
+
+// ======================================================
+// BLYNK AUTH TOKEN
+// ======================================================
+
+// IMPORTANT:
+// Replace the text below with your Blynk device Auth Token.
+// Do NOT share your token with anyone.
+
+const BLYNK_TOKEN = "lJgZ3C-OWVYFNTLIOb_3wobsZzHyHsFF";
+
+
+
+// ======================================================
+// START VOICE RECOGNITION
+// ======================================================
+
+function startVoice() {
+
+    const SpeechRecognition =
+        window.SpeechRecognition ||
+        window.webkitSpeechRecognition;
+
+
+    // Check browser support
+
+    if (!SpeechRecognition) {
+
+        document.getElementById("status").innerText =
+            "Speech recognition is not supported in this browser.";
+
+        return;
+    }
+
+
+    const recognition = new SpeechRecognition();
+
+
+    // English voice recognition
+
+    recognition.lang = "en-US";
+
+
+    recognition.continuous = false;
+
+    recognition.interimResults = false;
+
+    recognition.maxAlternatives = 1;
+
+
+    document.getElementById("status").innerText =
+        "Listening...";
+
+
+    recognition.start();
+
+
+
+    // ==================================================
+    // WHEN VOICE IS RECOGNIZED
+    // ==================================================
+
+    recognition.onresult = function(event) {
+
+
+        // Convert voice to text
+
+        const command =
+            event.results[0][0].transcript.toLowerCase();
+
+
+        // Display recognized command
+
+        document.getElementById("heard").innerText =
+            "Heard: " + command;
+
+
+
+        // ==================================================
+        // GOOD NIGHT MODE
+        // ==================================================
+        //
+        // Fan       = ON
+        // LED       = OFF
+        // LED Strip = OFF
+        //
+        // Command:
+        // "Good night"
+        // ==================================================
+
+        if (command.includes("good night")) {
+
+
+            // Fan ON
+            sendToBlynk("V0", 1);
+
+
+            // LED OFF
+            sendToBlynk("V1", 0);
+
+
+            // LED Strip OFF
+            sendToBlynk("V2", 0);
+
+
+            document.getElementById("status").innerText =
+                "Good Night Mode: Fan ON, LED OFF, Strip OFF";
+
+        }
+
+
+
+        // ==================================================
+        // STUDY MODE
+        // ==================================================
+        //
+        // Fan       = ON
+        // LED       = ON
+        // LED Strip = ON
+        //
+        // Command:
+        // "Study mode on"
+        // ==================================================
+
+        else if (command.includes("study mode")) {
+
+
+            // Fan ON
+            sendToBlynk("V0", 1);
+
+
+            // LED ON
+            sendToBlynk("V1", 1);
+
+
+            // LED Strip ON
+            sendToBlynk("V2", 1);
+
+
+            document.getElementById("status").innerText =
+                "Study Mode: All Appliances ON";
+
+        }
+
+
+
+        // ==================================================
+        // FAN ON
+        // ==================================================
+
+        else if (command.includes("enable fan")) {
+
+            sendToBlynk("V0", 1);
+
+
+            document.getElementById("status").innerText =
+                "Fan ON";
+
+        }
+
+
+
+        // ==================================================
+        // FAN OFF
+        // ==================================================
+
+        else if (command.includes("disable fan")) {
+
+            sendToBlynk("V0", 0);
+
+
+            document.getElementById("status").innerText =
+                "Fan OFF";
+
+        }
+
+
+
+        // ==================================================
+        // LED ON
+        // ==================================================
+
+        else if (command.includes("enable light")) {
+
+            sendToBlynk("V1", 1);
+
+
+            document.getElementById("status").innerText =
+                "LED ON";
+
+        }
+
+
+
+        // ==================================================
+        // LED OFF
+        // ==================================================
+
+        else if (command.includes("disable light")) {
+
+            sendToBlynk("V1", 0);
+
+
+            document.getElementById("status").innerText =
+                "LED OFF";
+
+        }
+
+
+
+        // ==================================================
+        // STRIP ON
+        // ==================================================
+
+        else if (command.includes("Enable strip")) {
+
+            sendToBlynk("V2", 1);
+
+
+            document.getElementById("status").innerText =
+                "LED Strip ON";
+
+        }
+
+
+
+        // ==================================================
+        // STRIP OFF
+        // ==================================================
+
+        else if (command.includes("Disable strip")) {
+
+            sendToBlynk("V2", 0);
+
+
+            document.getElementById("status").innerText =
+                "LED Strip OFF";
+
+        }
+
+
+
+        // ==================================================
+        // UNKNOWN COMMAND
+        // ==================================================
+
+        else {
+
+            document.getElementById("status").innerText =
+                "Command not recognized.";
+
+        }
+
+    };
+
+
+
+    // ==================================================
+    // VOICE RECOGNITION ERROR
+    // ==================================================
+
+    recognition.onerror = function(event) {
+
+        document.getElementById("status").innerText =
+            "Voice error: " + event.error;
+
+    };
+
+}
+
+
+
+// ======================================================
+// SEND COMMAND TO BLYNK
+// ======================================================
+
+function sendToBlynk(pin, value) {
+
+
+    // Check whether Auth Token was entered
+
+    if (
+        BLYNK_TOKEN ===
+        "PASTE_YOUR_BLYNK_AUTH_TOKEN_HERE"
+    ) {
+
+        document.getElementById("status").innerText =
+            "Please enter your Blynk Auth Token.";
+
+        return;
+    }
+
+
+
+    // ==================================================
+    // BLYNK HTTP API URL
+    // ==================================================
+
+    const url =
+        "https://blynk.cloud/external/api/update" +
+
+        "?token=" +
+        encodeURIComponent(BLYNK_TOKEN) +
+
+        "&" +
+        pin +
+        "=" +
+        value;
+
+
+
+    // ==================================================
+    // SEND REQUEST TO BLYNK
+    // ==================================================
+
+    const request = new Image();
+
+
+    request.onload = function() {
+
+        console.log(
+            "Blynk command sent successfully:",
+            pin,
+            value
+        );
+
+    };
+
+
+    request.onerror = function() {
+
+        console.log(
+            "Blynk request sent:",
+            pin,
+            value
+        );
+
+    };
+
+
+    request.src = url;
+
+}
+
+
+</script>
+
+
+</body>
+
+</html>
