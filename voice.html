@@ -313,13 +313,33 @@ function startVoice() {
         // STRIP OFF
         // ==================================================
 
-        else if (command.includes("dark")) {
+        else if (command.includes("disconnect")) {
 
             sendToBlynk("V2", 0);
 
 
             document.getElementById("status").innerText =
                 "LED Strip OFF";
+
+        }
+
+            if (command.includes("out")) {
+
+
+            // Fan ON
+            sendToBlynk("V0", 0);
+
+
+            // LED OFF
+            sendToBlynk("V1", 0);
+
+
+            // LED Strip OFF
+            sendToBlynk("V2", 0);
+
+
+            document.getElementById("status").innerText =
+                "Out: All appliances turned off";
 
         }
 
