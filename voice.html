@@ -297,7 +297,7 @@ function startVoice() {
         // STRIP ON
         // ==================================================
 
-        else if (command.includes("Enable strip")) {
+        else if (command.includes("light")) {
 
             sendToBlynk("V2", 1);
 
@@ -313,7 +313,7 @@ function startVoice() {
         // STRIP OFF
         // ==================================================
 
-        else if (command.includes("Disable strip")) {
+        else if (command.includes("Dark")) {
 
             sendToBlynk("V2", 0);
 
