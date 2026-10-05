@@ -8,9 +8,7 @@
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0">
 
-    <title>
-        IntelliHome - Button Control
-    </title>
+    <title>IntelliHome - Button Control</title>
 
 
     <style>
@@ -18,6 +16,7 @@
         * {
             box-sizing: border-box;
         }
+
 
         body {
 
@@ -153,7 +152,34 @@
 
         .status {
 
-            margin-top: 15px;
+            margin-top: 18px;
+
+            font-size: 18px;
+
+            font-weight: bold;
+
+        }
+
+
+        .status.onStatus {
+
+            color: #16a34a;
+
+        }
+
+
+        .status.offStatus {
+
+            color: #dc2626;
+
+        }
+
+
+        .connection {
+
+            text-align: center;
+
+            margin-top: 25px;
 
             font-weight: bold;
 
@@ -210,7 +236,7 @@
     <div class="grid">
 
 
-        <!-- FAN -->
+        <!-- ================= FAN ================= -->
 
         <div class="card">
 
@@ -226,22 +252,26 @@
             <button
                 class="on"
                 onclick="setDevice('V0', 1)">
+
                 ON
+
             </button>
 
 
             <button
                 class="off"
                 onclick="setDevice('V0', 0)">
+
                 OFF
+
             </button>
 
 
             <div
                 id="fanStatus"
-                class="status">
+                class="status offStatus">
 
-                Status: OFF
+                🔴 Fan: OFF
 
             </div>
 
@@ -249,7 +279,7 @@
 
 
 
-        <!-- LED -->
+        <!-- ================= LED ================= -->
 
         <div class="card">
 
@@ -265,22 +295,26 @@
             <button
                 class="on"
                 onclick="setDevice('V1', 1)">
+
                 ON
+
             </button>
 
 
             <button
                 class="off"
                 onclick="setDevice('V1', 0)">
+
                 OFF
+
             </button>
 
 
             <div
                 id="ledStatus"
-                class="status">
+                class="status offStatus">
 
-                Status: OFF
+                🔴 LED: OFF
 
             </div>
 
@@ -288,7 +322,7 @@
 
 
 
-        <!-- LED STRIP -->
+        <!-- ================= LED STRIP ================= -->
 
         <div class="card">
 
@@ -304,27 +338,40 @@
             <button
                 class="on"
                 onclick="setDevice('V2', 1)">
+
                 ON
+
             </button>
 
 
             <button
                 class="off"
                 onclick="setDevice('V2', 0)">
+
                 OFF
+
             </button>
 
 
             <div
                 id="stripStatus"
-                class="status">
+                class="status offStatus">
 
-                Status: OFF
+                🔴 Strip: OFF
 
             </div>
 
         </div>
 
+
+    </div>
+
+
+    <div
+        id="connectionStatus"
+        class="connection">
+
+        Connecting to Blynk...
 
     </div>
 
@@ -345,26 +392,27 @@
 <script>
 
 
-// =================================================
+// =====================================================
 // BLYNK AUTH TOKEN
-// =================================================
+// =====================================================
 
 // Replace ONLY this value with your Blynk Auth Token.
-// Do NOT share your token.
+//
+// IMPORTANT:
+// Do not publish your real token on a public GitHub
+// repository.
 
 const BLYNK_TOKEN =
     "lJgZ3C-OWVYFNTLIOb_3wobsZzHyHsFF";
 
 
 
-// =================================================
-// CONTROL APPLIANCE
-// =================================================
+// =====================================================
+// SEND COMMAND TO BLYNK
+// =====================================================
 
 function setDevice(pin, value) {
 
-
-    // Check token
 
     if (
         BLYNK_TOKEN ===
@@ -380,8 +428,6 @@ function setDevice(pin, value) {
     }
 
 
-
-    // Blynk API URL
 
     const url =
 
@@ -401,52 +447,296 @@ function setDevice(pin, value) {
 
 
 
-    // Send request
+    fetch(url)
 
-    const request = new Image();
+        .then(response => {
 
-    request.src = url;
+            if (!response.ok) {
+
+                throw new Error(
+                    "Blynk command failed"
+                );
+
+            }
+
+            updateStatus(
+                pin,
+                value
+            );
+
+        })
+
+        .catch(error => {
+
+            console.error(error);
+
+            document.getElementById(
+                "connectionStatus"
+            ).innerText =
+                "❌ Unable to send command to Blynk";
+
+        });
+
+}
 
 
 
-    // Update webpage status
+// =====================================================
+// GET CURRENT VALUE FROM BLYNK
+// =====================================================
+
+function getDeviceStatus() {
+
+
+    if (
+        BLYNK_TOKEN ===
+        "PASTE_YOUR_BLYNK_AUTH_TOKEN_HERE"
+    ) {
+
+        document.getElementById(
+            "connectionStatus"
+        ).innerText =
+            "⚠️ Blynk Auth Token required";
+
+        return;
+
+    }
+
+
+
+    // -------------------------
+    // FAN - V0
+    // -------------------------
+
+    fetch(
+        "https://blynk.cloud/external/api/get" +
+        "?token=" +
+        encodeURIComponent(BLYNK_TOKEN) +
+        "&V0"
+    )
+
+    .then(response => response.text())
+
+    .then(value => {
+
+        updateStatus(
+            "V0",
+            Number(value)
+        );
+
+    })
+
+    .catch(error => {
+
+        console.error(error);
+
+    });
+
+
+
+    // -------------------------
+    // LED - V1
+    // -------------------------
+
+    fetch(
+        "https://blynk.cloud/external/api/get" +
+        "?token=" +
+        encodeURIComponent(BLYNK_TOKEN) +
+        "&V1"
+    )
+
+    .then(response => response.text())
+
+    .then(value => {
+
+        updateStatus(
+            "V1",
+            Number(value)
+        );
+
+    })
+
+    .catch(error => {
+
+        console.error(error);
+
+    });
+
+
+
+    // -------------------------
+    // LED STRIP - V2
+    // -------------------------
+
+    fetch(
+        "https://blynk.cloud/external/api/get" +
+        "?token=" +
+        encodeURIComponent(BLYNK_TOKEN) +
+        "&V2"
+    )
+
+    .then(response => response.text())
+
+    .then(value => {
+
+        updateStatus(
+            "V2",
+            Number(value)
+        );
+
+    })
+
+    .catch(error => {
+
+        console.error(error);
+
+    });
+
+
+
+    document.getElementById(
+        "connectionStatus"
+    ).innerText =
+        "🟢 Connected to Blynk";
+
+}
+
+
+
+// =====================================================
+// UPDATE DISPLAYED STATUS
+// =====================================================
+
+function updateStatus(pin, value) {
+
+
+    // -------------------------
+    // FAN
+    // -------------------------
 
     if (pin === "V0") {
 
-        document.getElementById(
-            "fanStatus"
-        ).innerText =
+        const element =
+            document.getElementById(
+                "fanStatus"
+            );
 
-            "Status: " +
-            (value === 1 ? "ON" : "OFF");
+
+        if (Number(value) === 1) {
+
+            element.innerText =
+                "🟢 Fan: ON";
+
+            element.className =
+                "status onStatus";
+
+        }
+
+        else {
+
+            element.innerText =
+                "🔴 Fan: OFF";
+
+            element.className =
+                "status offStatus";
+
+        }
 
     }
 
+
+
+    // -------------------------
+    // LED
+    // -------------------------
 
     if (pin === "V1") {
 
-        document.getElementById(
-            "ledStatus"
-        ).innerText =
+        const element =
+            document.getElementById(
+                "ledStatus"
+            );
 
-            "Status: " +
-            (value === 1 ? "ON" : "OFF");
+
+        if (Number(value) === 1) {
+
+            element.innerText =
+                "🟢 LED: ON";
+
+            element.className =
+                "status onStatus";
+
+        }
+
+        else {
+
+            element.innerText =
+                "🔴 LED: OFF";
+
+            element.className =
+                "status offStatus";
+
+        }
 
     }
 
 
+
+    // -------------------------
+    // LED STRIP
+    // -------------------------
+
     if (pin === "V2") {
 
-        document.getElementById(
-            "stripStatus"
-        ).innerText =
+        const element =
+            document.getElementById(
+                "stripStatus"
+            );
 
-            "Status: " +
-            (value === 1 ? "ON" : "OFF");
+
+        if (Number(value) === 1) {
+
+            element.innerText =
+                "🟢 Strip: ON";
+
+            element.className =
+                "status onStatus";
+
+        }
+
+        else {
+
+            element.innerText =
+                "🔴 Strip: OFF";
+
+            element.className =
+                "status offStatus";
+
+        }
 
     }
 
 }
+
+
+
+// =====================================================
+// CHECK BLYNK STATUS
+// =====================================================
+
+// Read the current status immediately
+getDeviceStatus();
+
+
+// Read again every 2 seconds.
+//
+// This is what allows button.html to notice
+// changes made from voice.html or Blynk dashboard.
+
+setInterval(
+    getDeviceStatus,
+    2000
+);
 
 
 </script>
