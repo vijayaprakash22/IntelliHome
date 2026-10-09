@@ -1,456 +1,537 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>IntelliHome Voice Control</title>
 
     <style>
-
         body {
             font-family: Arial, sans-serif;
             text-align: center;
             background: #f4f6f8;
             margin: 0;
-            padding-top: 80px;
+            padding: 50px 15px;
         }
 
         h1 {
-            font-size: 36px;
+            font-size: 32px;
         }
 
         p {
-            font-size: 20px;
+            font-size: 18px;
+            line-height: 1.5;
         }
 
         button {
-            font-size: 22px;
-            padding: 15px 30px;
+            font-size: 18px;
+            padding: 12px 22px;
             border-radius: 10px;
             border: none;
             cursor: pointer;
+            margin: 8px;
         }
 
-        #heard {
-            margin-top: 30px;
-            font-size: 22px;
+        #startButton {
+            background: #2563eb;
+            color: white;
         }
 
-        #status {
-            margin-top: 15px;
-            font-size: 20px;
+        #confirmButton {
+            background: #15803d;
+            color: white;
+        }
+
+        #cancelButton {
+            background: #dc2626;
+            color: white;
+        }
+
+        #heard, #status {
+            margin-top: 20px;
+            font-size: 18px;
             font-weight: bold;
         }
 
+        #confirmPopup {
+            display: none;
+            max-width: 420px;
+            margin: 25px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 14px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
+        }
     </style>
-
 </head>
-
 
 <body>
 
     <h1>🏠 IntelliHome Voice Control</h1>
 
     <p>
-        Voice Commands:
-        <b>Enable Fan, Disable Fan , Enable Light, Disable Light, Enable Strip, Disable Strip</b>
+        Voice Commands:<br>
+        <b>
+            Enable Fan, Disable Fan,
+            Enable Light, Disable Light,
+            Enable Strip, Disable Strip
+        </b>
     </p>
 
     <p>
-        Modes:
-        <b>Good night, Study mode on</b>
+        Modes: <b>Good Night, Study Mode On</b><br>
+        Safety command: <b>Out</b>
     </p>
 
-
-    <button onclick="startVoice()">
+    <button id="startButton" onclick="startVoice()">
         🎤 Start Voice Command
     </button>
 
+    <p id="heard">Heard: —</p>
+    <p id="status">Status: Ready</p>
 
-    <p id="heard">
-        Heard: —
-    </p>
+    <div id="confirmPopup">
+        <h2>⚠️ Confirm Action</h2>
 
+        <p>
+            Are you sure you want to turn OFF
+            all appliances?
+        </p>
 
-    <p id="status">
-        Status: Ready
-    </p>
+        <button id="confirmButton" onclick="confirmAllOff()">
+            Confirm
+        </button>
 
+        <button id="cancelButton" onclick="cancelAllOff()">
+            Cancel
+        </button>
+    </div>
 
+    <script>
+        // ==========================================
+        // BLYNK AUTH TOKEN
+        // ==========================================
 
-<script>
+        // Enter your NEW Blynk Auth Token here.
+        const BLYNK_TOKEN =
+            "lJgZ3C-OWVYFNTLIOb_3wobsZzHyHsFF";
 
+        let pendingConfirmation = false;
+        let confirmationRecognition = null;
+        let confirmationResolved = false;
 
-// ======================================================
-// BLYNK AUTH TOKEN
-// ======================================================
-
-// IMPORTANT:
-// Replace the text below with your Blynk device Auth Token.
-// Do NOT share your token with anyone.
-
-const BLYNK_TOKEN = "lJgZ3C-OWVYFNTLIOb_3wobsZzHyHsFF";
-
-
-
-// ======================================================
-// START VOICE RECOGNITION
-// ======================================================
-
-function startVoice() {
-
-    const SpeechRecognition =
-        window.SpeechRecognition ||
-        window.webkitSpeechRecognition;
-
-
-    // Check browser support
-
-    if (!SpeechRecognition) {
-
-        document.getElementById("status").innerText =
-            "Speech recognition is not supported in this browser.";
-
-        return;
-    }
+        const SpeechRecognition =
+            window.SpeechRecognition ||
+            window.webkitSpeechRecognition;
 
 
-    const recognition = new SpeechRecognition();
+        // ==========================================
+        // TEXT-TO-SPEECH
+        // ==========================================
 
+        function speakMessage(message, callback) {
+            if (!("speechSynthesis" in window)) {
+                document.getElementById("status").innerText =
+                    "Voice output is unavailable. Use the buttons.";
+                return;
+            }
 
-    // English voice recognition
+            window.speechSynthesis.cancel();
 
-    recognition.lang = "en-US";
+            const utterance = new SpeechSynthesisUtterance(message);
+            utterance.lang = "en-US";
+            utterance.rate = 0.9;
 
+            if (callback) {
+                utterance.onend = callback;
+            }
 
-    recognition.continuous = false;
-
-    recognition.interimResults = false;
-
-    recognition.maxAlternatives = 1;
-
-
-    document.getElementById("status").innerText =
-        "Listening...";
-
-
-    recognition.start();
-
-
-
-    // ==================================================
-    // WHEN VOICE IS RECOGNIZED
-    // ==================================================
-
-    recognition.onresult = function(event) {
-
-
-        // Convert voice to text
-
-        const command =
-            event.results[0][0].transcript.toLowerCase();
-
-
-        // Display recognized command
-
-        document.getElementById("heard").innerText =
-            "Heard: " + command;
-
-
-
-        // ==================================================
-        // GOOD NIGHT MODE
-        // ==================================================
-        //
-        // Fan       = ON
-        // LED       = OFF
-        // LED Strip = OFF
-        //
-        // Command:
-        // "Good night"
-        // ==================================================
-
-        if (command.includes("good night")) {
-
-
-            // Fan ON
-            sendToBlynk("V0", 1);
-
-
-            // LED OFF
-            sendToBlynk("V1", 0);
-
-
-            // LED Strip OFF
-            sendToBlynk("V2", 0);
-
-
-            document.getElementById("status").innerText =
-                "Good Night Mode: Fan ON, LED OFF, Strip OFF";
-
+            window.speechSynthesis.speak(utterance);
         }
 
 
+        // ==========================================
+        // START MAIN VOICE RECOGNITION
+        // ==========================================
 
-        // ==================================================
-        // STUDY MODE
-        // ==================================================
-        //
-        // Fan       = ON
-        // LED       = ON
-        // LED Strip = ON
-        //
-        // Command:
-        // "Study mode on"
-        // ==================================================
+        function startVoice() {
+            if (!SpeechRecognition) {
+                document.getElementById("status").innerText =
+                    "Speech recognition is not supported in this browser.";
+                return;
+            }
 
-        else if (command.includes("study mode")) {
+            if (pendingConfirmation) {
+                document.getElementById("status").innerText =
+                    "Please Confirm or Cancel the pending action.";
+                return;
+            }
 
+            const recognition = new SpeechRecognition();
 
-            // Fan ON
-            sendToBlynk("V0", 1);
-
-
-            // LED ON
-            sendToBlynk("V1", 1);
-
-
-            // LED Strip ON
-            sendToBlynk("V2", 1);
-
+            recognition.lang = "en-US";
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
 
             document.getElementById("status").innerText =
-                "Study Mode: All Appliances ON";
+                "Listening...";
 
+            recognition.start();
+
+            recognition.onresult = function(event) {
+                const command =
+                    event.results[0][0].transcript
+                        .toLowerCase()
+                        .trim();
+
+                document.getElementById("heard").innerText =
+                    "Heard: " + command;
+
+                processCommand(command);
+            };
+
+            recognition.onerror = function(event) {
+                document.getElementById("status").innerText =
+                    "Voice error: " + event.error;
+            };
         }
 
 
+        // ==========================================
+        // PROCESS VOICE COMMANDS
+        // ==========================================
 
-        // ==================================================
-        // FAN ON
-        // ==================================================
+        function processCommand(command) {
 
-        else if (command.includes("enable fan")) {
-
-            sendToBlynk("V0", 1);
-
-
-            document.getElementById("status").innerText =
-                "Fan ON";
-
-        }
-
-
-
-        // ==================================================
-        // FAN OFF
-        // ==================================================
-
-        else if (command.includes("disable fan")) {
-
-            sendToBlynk("V0", 0);
-
-
-            document.getElementById("status").innerText =
-                "Fan OFF";
-
-        }
-
-
-
-        // ==================================================
-        // LED ON
-        // ==================================================
-
-        else if (command.includes("enable light")) {
-
-            sendToBlynk("V1", 1);
-
-
-            document.getElementById("status").innerText =
-                "LED ON";
-
-        }
-
-
-
-        // ==================================================
-        // LED OFF
-        // ==================================================
-
-        else if (command.includes("disable light")) {
-
-            sendToBlynk("V1", 0);
-
-
-            document.getElementById("status").innerText =
-                "LED OFF";
-
-        }
-
-
-
-        // ==================================================
-        // STRIP ON
-        // ==================================================
-
-        else if (command.includes("light")) {
-
-            sendToBlynk("V2", 1);
-
-
-            document.getElementById("status").innerText =
-                "LED Strip ON";
-
-        }
-
-
-
-        // ==================================================
-        // STRIP OFF
-        // ==================================================
-
-        else if (command.includes("disconnect")) {
-
-            sendToBlynk("V2", 0);
-
-
-            document.getElementById("status").innerText =
-                "LED Strip OFF";
-
-        }
+            // Ask for confirmation before turning
+            // OFF all appliances.
 
             if (command.includes("out")) {
+                requestAllOffConfirmation();
+                return;
+            }
 
+            // GOOD NIGHT MODE
+            // Fan ON, LED OFF, Strip OFF.
 
-            // Fan ON
-            sendToBlynk("V0", 0);
+            if (command.includes("good night")) {
+                sendToBlynk("V0", 1);
+                sendToBlynk("V1", 0);
+                sendToBlynk("V2", 0);
 
+                document.getElementById("status").innerText =
+                    "Good Night Mode: Fan ON, LED OFF, Strip OFF";
+            }
+
+            // STUDY MODE
+            // All appliances ON.
+
+            else if (command.includes("study mode")) {
+                sendToBlynk("V0", 1);
+                sendToBlynk("V1", 1);
+                sendToBlynk("V2", 1);
+
+                document.getElementById("status").innerText =
+                    "Study Mode: All Appliances ON";
+            }
+
+            // FAN ON
+
+            else if (command.includes("enable fan")) {
+                sendToBlynk("V0", 1);
+
+                document.getElementById("status").innerText =
+                    "Fan ON";
+            }
+
+            // FAN OFF
+
+            else if (command.includes("disable fan")) {
+                sendToBlynk("V0", 0);
+
+                document.getElementById("status").innerText =
+                    "Fan OFF";
+            }
+
+            // LED ON
+
+            else if (command.includes("enable light")) {
+                sendToBlynk("V1", 1);
+
+                document.getElementById("status").innerText =
+                    "LED ON";
+            }
 
             // LED OFF
-            sendToBlynk("V1", 0);
 
+            else if (command.includes("disable light")) {
+                sendToBlynk("V1", 0);
 
-            // LED Strip OFF
-            sendToBlynk("V2", 0);
+                document.getElementById("status").innerText =
+                    "LED OFF";
+            }
 
+            // STRIP ON
 
-            document.getElementById("status").innerText =
-                "Out: All appliances turned off";
+            else if (
+                command.includes("enable strip") ||
+                command.includes("strip on")
+            ) {
+                sendToBlynk("V2", 1);
 
+                document.getElementById("status").innerText =
+                    "LED Strip ON";
+            }
+
+            // STRIP OFF
+
+            else if (
+                command.includes("disable strip") ||
+                command.includes("strip off") ||
+                command.includes("disconnect")
+            ) {
+                sendToBlynk("V2", 0);
+
+                document.getElementById("status").innerText =
+                    "LED Strip OFF";
+            }
+
+            // UNKNOWN COMMAND
+
+            else {
+                document.getElementById("status").innerText =
+                    "Command not recognized.";
+            }
         }
 
 
+        // ==========================================
+        // REQUEST CONFIRMATION
+        // ==========================================
 
-        // ==================================================
-        // UNKNOWN COMMAND
-        // ==================================================
+        function requestAllOffConfirmation() {
 
-        else {
+            pendingConfirmation = true;
+            confirmationResolved = false;
+
+            document.getElementById("confirmPopup").style.display =
+                "block";
 
             document.getElementById("status").innerText =
-                "Command not recognized.";
+                "Waiting for confirmation.";
 
+            speakMessage(
+                "Are you sure you want to turn off all appliances? " +
+                "Say Confirm or Cancel, or click a button.",
+                function() {
+                    startConfirmationListening();
+                }
+            );
         }
 
-    };
+
+        // ==========================================
+        // LISTEN FOR CONFIRM OR CANCEL
+        // ==========================================
+
+        function startConfirmationListening() {
+
+            if (!pendingConfirmation || !SpeechRecognition) {
+                return;
+            }
+
+            const recognition = new SpeechRecognition();
+
+            confirmationRecognition = recognition;
+
+            recognition.lang = "en-US";
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            recognition.onresult = function(event) {
+
+                if (!pendingConfirmation) {
+                    return;
+                }
+
+                const answer =
+                    event.results[0][0].transcript
+                        .toLowerCase()
+                        .trim();
+
+                document.getElementById("heard").innerText =
+                    "Heard: " + answer;
+
+                if (
+                    answer === "confirm" ||
+                    answer.includes("confirm") ||
+                    answer === "yes"
+                ) {
+                    confirmAllOff();
+                }
+
+                else if (
+                    answer.includes("cancel") ||
+                    answer === "no"
+                ) {
+                    cancelAllOff();
+                }
+
+                else {
+                    document.getElementById("status").innerText =
+                        "Please say Confirm or Cancel, or click a button.";
+
+                    speakMessage(
+                        "Please say Confirm or Cancel, or click a button."
+                    );
+                }
+            };
+
+            recognition.onerror = function(event) {
+
+                if (!pendingConfirmation) {
+                    return;
+                }
+
+                document.getElementById("status").innerText =
+                    "Use the Confirm or Cancel buttons. Voice error: " +
+                    event.error;
+            };
+
+            try {
+                recognition.start();
+            } catch (error) {
+                document.getElementById("status").innerText =
+                    "Use the Confirm or Cancel buttons.";
+            }
+        }
 
 
+        // ==========================================
+        // CONFIRM: TURN OFF ALL APPLIANCES
+        // ==========================================
 
-    // ==================================================
-    // VOICE RECOGNITION ERROR
-    // ==================================================
+        async function confirmAllOff() {
 
-    recognition.onerror = function(event) {
+            if (!pendingConfirmation || confirmationResolved) {
+                return;
+            }
 
-        document.getElementById("status").innerText =
-            "Voice error: " + event.error;
+            confirmationResolved = true;
+            pendingConfirmation = false;
 
-    };
+            stopConfirmationListening();
 
-}
+            document.getElementById("confirmPopup").style.display =
+                "none";
 
+            document.getElementById("status").innerText =
+                "Turning OFF all appliances...";
 
+            const results = await Promise.all([
+                sendToBlynk("V0", 0),
+                sendToBlynk("V1", 0),
+                sendToBlynk("V2", 0)
+            ]);
 
-// ======================================================
-// SEND COMMAND TO BLYNK
-// ======================================================
+            if (results.every(result => result === true)) {
+                document.getElementById("status").innerText =
+                    "Confirmed: Fan, LED and LED Strip turned OFF.";
 
-function sendToBlynk(pin, value) {
-
-
-    // Check whether Auth Token was entered
-
-    if (
-        BLYNK_TOKEN ===
-        "PASTE_YOUR_BLYNK_AUTH_TOKEN_HERE"
-    ) {
-
-        document.getElementById("status").innerText =
-            "Please enter your Blynk Auth Token.";
-
-        return;
-    }
-
-
-
-    // ==================================================
-    // BLYNK HTTP API URL
-    // ==================================================
-
-    const url =
-        "https://blynk.cloud/external/api/update" +
-
-        "?token=" +
-        encodeURIComponent(BLYNK_TOKEN) +
-
-        "&" +
-        pin +
-        "=" +
-        value;
+                speakMessage("Confirmed. All appliances are turned off.");
+            } else {
+                document.getElementById("status").innerText =
+                    "Some commands failed. Please check appliance status.";
+            }
+        }
 
 
+        // ==========================================
+        // CANCEL: DO NOT CHANGE APPLIANCE STATES
+        // ==========================================
 
-    // ==================================================
-    // SEND REQUEST TO BLYNK
-    // ==================================================
+        function cancelAllOff() {
 
-    const request = new Image();
+            if (!pendingConfirmation || confirmationResolved) {
+                return;
+            }
 
+            confirmationResolved = true;
+            pendingConfirmation = false;
 
-    request.onload = function() {
+            stopConfirmationListening();
 
-        console.log(
-            "Blynk command sent successfully:",
-            pin,
-            value
-        );
+            document.getElementById("confirmPopup").style.display =
+                "none";
 
-    };
+            document.getElementById("status").innerText =
+                "Cancelled. Appliance states unchanged.";
 
-
-    request.onerror = function() {
-
-        console.log(
-            "Blynk request sent:",
-            pin,
-            value
-        );
-
-    };
+            speakMessage("Cancelled. Appliance states are unchanged.");
+        }
 
 
-    request.src = url;
+        // ==========================================
+        // STOP CONFIRMATION LISTENING
+        // ==========================================
 
-}
+        function stopConfirmationListening() {
+            if (confirmationRecognition) {
+                confirmationRecognition.onresult = null;
+                confirmationRecognition.onerror = null;
+
+                try {
+                    confirmationRecognition.abort();
+                } catch (error) {
+                    // Recognition may already have stopped.
+                }
+
+                confirmationRecognition = null;
+            }
+        }
 
 
-</script>
+        // ==========================================
+        // SEND COMMAND TO BLYNK
+        // ==========================================
 
+        async function sendToBlynk(pin, value) {
+
+            if (
+                BLYNK_TOKEN ===
+                "PASTE_YOUR_NEW_BLYNK_AUTH_TOKEN_HERE" ||
+                !BLYNK_TOKEN.trim()
+            ) {
+                document.getElementById("status").innerText =
+                    "Please enter your Blynk Auth Token.";
+                return false;
+            }
+
+            const url =
+                "https://blynk.cloud/external/api/update" +
+                "?token=" + encodeURIComponent(BLYNK_TOKEN) +
+                "&" + pin + "=" + value;
+
+            try {
+                const response = await fetch(url);
+
+                if (!response.ok) {
+                    return false;
+                }
+
+                return true;
+
+            } catch (error) {
+                console.error("Blynk request failed:", error);
+                return false;
+            }
+        }
+    </script>
 
 </body>
-
 </html>
+```
