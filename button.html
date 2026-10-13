@@ -1,747 +1,523 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>IntelliHome - Button Control</title>
 
-
     <style>
-
         * {
             box-sizing: border-box;
         }
 
-
         body {
-
             margin: 0;
-
             font-family: Arial, sans-serif;
-
             background: #f4f7fb;
-
             color: #172033;
-
         }
-
 
         header {
-
             text-align: center;
-
             padding: 35px 15px;
-
         }
 
-
-        header h1 {
-
+        h1 {
             margin: 5px 0;
-
         }
-
 
         .subtitle {
-
             color: #667085;
-
         }
-
 
         .container {
-
             width: 90%;
-
             max-width: 1000px;
-
             margin: auto;
-
         }
-
 
         .grid {
-
             display: grid;
-
             grid-template-columns:
-                repeat(
-                    auto-fit,
-                    minmax(250px, 1fr)
-                );
-
+                repeat(auto-fit, minmax(250px, 1fr));
             gap: 22px;
-
         }
-
 
         .card {
-
             background: white;
-
             border-radius: 20px;
-
             padding: 30px;
-
             text-align: center;
-
-            box-shadow:
-                0 8px 25px
-                rgba(0,0,0,0.08);
-
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
         }
-
 
         .icon {
-
             font-size: 50px;
-
         }
-
-
-        h2 {
-
-            margin: 12px 0 20px;
-
-        }
-
 
         button {
-
-            width: 42%;
-
-            padding: 13px 10px;
-
+            padding: 13px 15px;
             margin: 5px;
-
             border: none;
-
             border-radius: 10px;
-
             font-size: 16px;
-
             font-weight: bold;
-
             cursor: pointer;
-
         }
-
 
         .on {
-
             background: #16a34a;
-
             color: white;
-
         }
-
 
         .off {
-
             background: #dc2626;
-
             color: white;
-
         }
 
+        .auto {
+            background: #2563eb;
+            color: white;
+        }
 
         .status {
-
             margin-top: 18px;
-
             font-size: 18px;
-
             font-weight: bold;
-
         }
 
-
-        .status.onStatus {
-
+        .onStatus {
             color: #16a34a;
-
         }
 
-
-        .status.offStatus {
-
+        .offStatus {
             color: #dc2626;
-
         }
 
+        .small {
+            font-size: 13px;
+            color: #667085;
+            margin-top: 10px;
+        }
 
-        .connection {
+        .readings {
+            display: grid;
+            grid-template-columns:
+                repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-top: 22px;
+        }
 
+        .reading {
+            background: white;
+            border-radius: 14px;
+            padding: 18px;
             text-align: center;
-
-            margin-top: 25px;
-
-            font-weight: bold;
-
         }
 
+        .reading strong {
+            display: block;
+            font-size: 24px;
+            margin-top: 8px;
+        }
+
+        #connectionStatus {
+            text-align: center;
+            margin-top: 25px;
+            font-weight: bold;
+        }
 
         .back {
-
             display: block;
-
             width: 180px;
-
             margin: 35px auto;
-
             padding: 12px;
-
             text-align: center;
-
             text-decoration: none;
-
             background: #172033;
-
             color: white;
-
             border-radius: 10px;
-
         }
-
     </style>
-
 </head>
-
 
 <body>
 
-
 <header>
-
-    <h1>
-        🎛️ IntelliHome Button Control
-    </h1>
-
-    <div class="subtitle">
-        Control your appliances manually
-    </div>
-
+    <h1>🎛️ IntelliHome Button Control</h1>
+    <p class="subtitle">
+        Control appliances manually or automatically
+    </p>
 </header>
-
-
 
 <div class="container">
 
-
     <div class="grid">
 
-
-        <!-- ================= FAN ================= -->
-
+        <!-- FAN -->
         <div class="card">
+            <div class="icon">🌀</div>
+            <h2>Fan</h2>
 
-            <div class="icon">
-                🌀
-            </div>
-
-            <h2>
-                Fan
-            </h2>
-
-
-            <button
-                class="on"
-                onclick="setDevice('V0', 1)">
-
+            <button class="on"
+                onclick="manualCommand('V0', 1)">
                 ON
-
             </button>
 
-
-            <button
-                class="off"
-                onclick="setDevice('V0', 0)">
-
+            <button class="off"
+                onclick="manualCommand('V0', 0)">
                 OFF
-
             </button>
 
-
-            <div
-                id="fanStatus"
-                class="status offStatus">
-
-                🔴 Fan: OFF
-
+            <div id="fanStatus" class="status">
+                Fan: --
             </div>
 
+            <button id="fanAutoButton"
+                class="auto"
+                onclick="toggleAuto('V5')">
+                Resume Auto Fan
+            </button>
+
+            <div id="fanMode" class="small">
+                Mode: checking...
+            </div>
         </div>
 
-
-
-        <!-- ================= LED ================= -->
-
+        <!-- LED LAMP -->
         <div class="card">
+            <div class="icon">💡</div>
+            <h2>LED Lamp</h2>
 
-            <div class="icon">
-                💡
-            </div>
-
-            <h2>
-                LED
-            </h2>
-
-
-            <button
-                class="on"
-                onclick="setDevice('V1', 1)">
-
+            <button class="on"
+                onclick="manualCommand('V1', 1)">
                 ON
-
             </button>
 
-
-            <button
-                class="off"
-                onclick="setDevice('V1', 0)">
-
+            <button class="off"
+                onclick="manualCommand('V1', 0)">
                 OFF
-
             </button>
 
-
-            <div
-                id="ledStatus"
-                class="status offStatus">
-
-                🔴 LED: OFF
-
+            <div id="ledStatus" class="status">
+                LED: --
             </div>
 
+            <button id="ledAutoButton"
+                class="auto"
+                onclick="toggleAuto('V6')">
+                Resume Auto LED
+            </button>
+
+            <div id="ledMode" class="small">
+                Mode: checking...
+            </div>
         </div>
 
-
-
-        <!-- ================= LED STRIP ================= -->
-
+        <!-- LED STRIP -->
         <div class="card">
+            <div class="icon">✨</div>
+            <h2>LED Strip</h2>
 
-            <div class="icon">
-                ✨
-            </div>
-
-            <h2>
-                LED Strip
-            </h2>
-
-
-            <button
-                class="on"
-                onclick="setDevice('V2', 1)">
-
+            <button class="on"
+                onclick="sendPin('V2', 1)">
                 ON
-
             </button>
 
-
-            <button
-                class="off"
-                onclick="setDevice('V2', 0)">
-
+            <button class="off"
+                onclick="sendPin('V2', 0)">
                 OFF
-
             </button>
 
-
-            <div
-                id="stripStatus"
-                class="status offStatus">
-
-                🔴 Strip: OFF
-
+            <div id="stripStatus" class="status">
+                LED Strip: --
             </div>
 
+            <div class="small">
+                Manual control
+            </div>
         </div>
-
 
     </div>
 
+    <!-- SENSOR READINGS -->
+    <div class="readings">
 
-    <div
-        id="connectionStatus"
-        class="connection">
+        <div class="reading">
+            Temperature
+            <strong id="temperature">-- °C</strong>
+        </div>
 
+        <div class="reading">
+            LDR Reading
+            <strong id="lightValue">--</strong>
+
+            <div id="roomCondition" class="small">
+                Sensor reading
+            </div>
+        </div>
+
+    </div>
+
+    <div id="connectionStatus">
         Connecting to Blynk...
-
     </div>
 
-
-    <a
-        class="back"
-        href="index.html">
-
+    <a class="back" href="index.html">
         ← Back to Home
-
     </a>
-
 
 </div>
 
-
-
 <script>
+    // Enter your current Blynk token.
+    const BLYNK_TOKEN = "lJgZ3C-OWVYFNTLIOb_3wobsZzHyHsFF";
+
+    const API =
+        "https://blynk.cloud/external/api";
+
+    const LDR_THRESHOLD = 2000;
+
+    // Must match the Arduino setting.
+    const DARK_READING_IS_HIGH = true;
 
 
-// =====================================================
-// BLYNK AUTH TOKEN
-// =====================================================
+    async function api(action, pin, value) {
 
-// Replace ONLY this value with your Blynk Auth Token.
-//
-// IMPORTANT:
-// Do not publish your real token on a public GitHub
-// repository.
+        if (
+            !BLYNK_TOKEN ||
+            BLYNK_TOKEN ===
+            "PASTE_YOUR_BLYNK_AUTH_TOKEN_HERE"
+        ) {
+            throw new Error(
+                "Enter your Blynk Auth Token."
+            );
+        }
 
-const BLYNK_TOKEN =
-    "lJgZ3C-OWVYFNTLIOb_3wobsZzHyHsFF";
+        let url =
+            `${API}/${action}?token=` +
+            encodeURIComponent(BLYNK_TOKEN) +
+            `&${pin}`;
 
+        if (value !== undefined) {
+            url += `=${encodeURIComponent(value)}`;
+        }
 
+        const response = await fetch(url);
 
-// =====================================================
-// SEND COMMAND TO BLYNK
-// =====================================================
+        if (!response.ok) {
+            throw new Error(
+                `Blynk request failed: ${response.status}`
+            );
+        }
 
-function setDevice(pin, value) {
-
-
-    if (
-        BLYNK_TOKEN ===
-        "PASTE_YOUR_BLYNK_AUTH_TOKEN_HERE"
-    ) {
-
-        alert(
-            "Please enter your Blynk Auth Token."
-        );
-
-        return;
-
+        return (await response.text()).trim();
     }
 
 
+    // Manual command disables automation first.
+    async function manualCommand(pin, value) {
 
-    const url =
+        try {
 
-        "https://blynk.cloud/external/api/update" +
-
-        "?token=" +
-
-        encodeURIComponent(BLYNK_TOKEN) +
-
-        "&" +
-
-        pin +
-
-        "=" +
-
-        value;
-
-
-
-    fetch(url)
-
-        .then(response => {
-
-            if (!response.ok) {
-
-                throw new Error(
-                    "Blynk command failed"
-                );
-
+            if (pin === "V0") {
+                await api("update", "V5", 0);
             }
 
-            updateStatus(
-                pin,
-                value
-            );
+            if (pin === "V1") {
+                await api("update", "V6", 0);
+            }
 
-        })
-
-        .catch(error => {
-
-            console.error(error);
+            await api("update", pin, value);
 
             document.getElementById(
                 "connectionStatus"
-            ).innerText =
-                "❌ Unable to send command to Blynk";
+            ).textContent = "Manual command sent.";
 
-        });
+            await refreshStatus();
 
-}
+        } catch (error) {
 
-
-
-// =====================================================
-// GET CURRENT VALUE FROM BLYNK
-// =====================================================
-
-function getDeviceStatus() {
-
-
-    if (
-        BLYNK_TOKEN ===
-        "PASTE_YOUR_BLYNK_AUTH_TOKEN_HERE"
-    ) {
-
-        document.getElementById(
-            "connectionStatus"
-        ).innerText =
-            "⚠️ Blynk Auth Token required";
-
-        return;
-
+            document.getElementById(
+                "connectionStatus"
+            ).textContent = error.message;
+        }
     }
 
 
+    async function sendPin(pin, value) {
 
-    // -------------------------
-    // FAN - V0
-    // -------------------------
+        try {
 
-    fetch(
-        "https://blynk.cloud/external/api/get" +
-        "?token=" +
-        encodeURIComponent(BLYNK_TOKEN) +
-        "&V0"
-    )
+            await api("update", pin, value);
 
-    .then(response => response.text())
+            document.getElementById(
+                "connectionStatus"
+            ).textContent = "Command sent to Blynk.";
 
-    .then(value => {
+            await refreshStatus();
 
-        updateStatus(
-            "V0",
-            Number(value)
-        );
+        } catch (error) {
 
-    })
-
-    .catch(error => {
-
-        console.error(error);
-
-    });
+            document.getElementById(
+                "connectionStatus"
+            ).textContent = error.message;
+        }
+    }
 
 
+    async function toggleAuto(pin) {
 
-    // -------------------------
-    // LED - V1
-    // -------------------------
+        try {
 
-    fetch(
-        "https://blynk.cloud/external/api/get" +
-        "?token=" +
-        encodeURIComponent(BLYNK_TOKEN) +
-        "&V1"
-    )
+            const current =
+                Number(await api("get", pin));
 
-    .then(response => response.text())
+            const nextValue = current === 1 ? 0 : 1;
 
-    .then(value => {
+            await api("update", pin, nextValue);
 
-        updateStatus(
-            "V1",
-            Number(value)
-        );
+            document.getElementById(
+                "connectionStatus"
+            ).textContent =
+                nextValue === 1
+                    ? "Automatic mode enabled."
+                    : "Automatic mode disabled.";
 
-    })
+            await refreshStatus();
 
-    .catch(error => {
+        } catch (error) {
 
-        console.error(error);
-
-    });
-
+            document.getElementById(
+                "connectionStatus"
+            ).textContent = error.message;
+        }
+    }
 
 
-    // -------------------------
-    // LED STRIP - V2
-    // -------------------------
-
-    fetch(
-        "https://blynk.cloud/external/api/get" +
-        "?token=" +
-        encodeURIComponent(BLYNK_TOKEN) +
-        "&V2"
-    )
-
-    .then(response => response.text())
-
-    .then(value => {
-
-        updateStatus(
-            "V2",
-            Number(value)
-        );
-
-    })
-
-    .catch(error => {
-
-        console.error(error);
-
-    });
-
-
-
-    document.getElementById(
-        "connectionStatus"
-    ).innerText =
-        "🟢 Connected to Blynk";
-
-}
-
-
-
-// =====================================================
-// UPDATE DISPLAYED STATUS
-// =====================================================
-
-function updateStatus(pin, value) {
-
-
-    // -------------------------
-    // FAN
-    // -------------------------
-
-    if (pin === "V0") {
+    function showState(id, label, value) {
 
         const element =
-            document.getElementById(
-                "fanStatus"
-            );
+            document.getElementById(id);
 
+        const isOn = Number(value) === 1;
 
-        if (Number(value) === 1) {
+        element.textContent =
+            `${label}: ${isOn ? "ON" : "OFF"}`;
 
-            element.innerText =
-                "🟢 Fan: ON";
-
-            element.className =
-                "status onStatus";
-
-        }
-
-        else {
-
-            element.innerText =
-                "🔴 Fan: OFF";
-
-            element.className =
-                "status offStatus";
-
-        }
-
+        element.className =
+            "status " +
+            (isOn ? "onStatus" : "offStatus");
     }
 
 
+    async function refreshStatus() {
 
-    // -------------------------
-    // LED
-    // -------------------------
+        try {
 
-    if (pin === "V1") {
+            const [
+                fan, led, strip,
+                temp, light,
+                fanAuto, ledAuto
+            ] = await Promise.all([
 
-        const element =
+                api("get", "V0"),
+                api("get", "V1"),
+                api("get", "V2"),
+                api("get", "V3"),
+                api("get", "V4"),
+                api("get", "V5"),
+                api("get", "V6")
+
+            ]);
+
+            showState("fanStatus", "Fan", fan);
+            showState("ledStatus", "LED", led);
+            showState("stripStatus", "LED Strip", strip);
+
+            const tempNumber = Number(temp);
+
             document.getElementById(
-                "ledStatus"
-            );
+                "temperature"
+            ).textContent =
+                temp !== "" && Number.isFinite(tempNumber)
+                    ? `${tempNumber.toFixed(1)} °C`
+                    : "-- °C";
 
+            const lightNumber = Number(light);
 
-        if (Number(value) === 1) {
+            document.getElementById(
+                "lightValue"
+            ).textContent =
+                light !== "" && Number.isFinite(lightNumber)
+                    ? String(lightNumber)
+                    : "--";
 
-            element.innerText =
-                "🟢 LED: ON";
+            if (
+                light !== "" &&
+                Number.isFinite(lightNumber)
+            ) {
 
-            element.className =
-                "status onStatus";
+                const isDark = DARK_READING_IS_HIGH
+                    ? lightNumber >= LDR_THRESHOLD
+                    : lightNumber <= LDR_THRESHOLD;
 
+                document.getElementById(
+                    "roomCondition"
+                ).textContent =
+                    isDark
+                        ? "Dark (threshold-based)"
+                        : "Bright (threshold-based)";
+            }
+
+            const isFanAuto = Number(fanAuto) === 1;
+            const isLedAuto = Number(ledAuto) === 1;
+
+            document.getElementById(
+                "fanMode"
+            ).textContent =
+                "Mode: " +
+                (isFanAuto ? "Automatic" : "Manual override");
+
+            document.getElementById(
+                "ledMode"
+            ).textContent =
+                "Mode: " +
+                (isLedAuto ? "Automatic" : "Manual override");
+
+            document.getElementById(
+                "fanAutoButton"
+            ).textContent =
+                isFanAuto
+                    ? "Disable Auto Fan"
+                    : "Resume Auto Fan";
+
+            document.getElementById(
+                "ledAutoButton"
+            ).textContent =
+                isLedAuto
+                    ? "Disable Auto LED"
+                    : "Resume Auto LED";
+
+            document.getElementById(
+                "connectionStatus"
+            ).textContent = "Connected to Blynk.";
+
+        } catch (error) {
+
+            document.getElementById(
+                "connectionStatus"
+            ).textContent =
+                "Unable to read Blynk: " + error.message;
         }
-
-        else {
-
-            element.innerText =
-                "🔴 LED: OFF";
-
-            element.className =
-                "status offStatus";
-
-        }
-
     }
 
 
+    refreshStatus();
 
-    // -------------------------
-    // LED STRIP
-    // -------------------------
-
-    if (pin === "V2") {
-
-        const element =
-            document.getElementById(
-                "stripStatus"
-            );
-
-
-        if (Number(value) === 1) {
-
-            element.innerText =
-                "🟢 Strip: ON";
-
-            element.className =
-                "status onStatus";
-
-        }
-
-        else {
-
-            element.innerText =
-                "🔴 Strip: OFF";
-
-            element.className =
-                "status offStatus";
-
-        }
-
-    }
-
-}
-
-
-
-// =====================================================
-// CHECK BLYNK STATUS
-// =====================================================
-
-// Read the current status immediately
-getDeviceStatus();
-
-
-// Read again every 2 seconds.
-//
-// This is what allows button.html to notice
-// changes made from voice.html or Blynk dashboard.
-
-setInterval(
-    getDeviceStatus,
-    2000
-);
-
-
+    setInterval(refreshStatus, 2500);
 </script>
 
-
 </body>
-
 </html>
