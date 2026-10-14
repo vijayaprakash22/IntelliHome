@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -66,6 +67,11 @@
             cursor: pointer;
         }
 
+        button:disabled {
+            opacity: 0.6;
+            cursor: wait;
+        }
+
         .on {
             background: #16a34a;
             color: white;
@@ -126,6 +132,7 @@
             text-align: center;
             margin-top: 25px;
             font-weight: bold;
+            overflow-wrap: anywhere;
         }
 
         .back {
@@ -177,7 +184,7 @@
             <button id="fanAutoButton"
                 class="auto"
                 onclick="toggleAuto('V5')">
-                Resume Auto Fan
+                Enable Auto Fan
             </button>
 
             <div id="fanMode" class="small">
@@ -207,7 +214,7 @@
             <button id="ledAutoButton"
                 class="auto"
                 onclick="toggleAuto('V6')">
-                Resume Auto LED
+                Enable Auto LED
             </button>
 
             <div id="ledMode" class="small">
@@ -271,11 +278,11 @@
 </div>
 
 <script>
-    // Enter your current Blynk token.
+    // Enter your NEW Blynk Auth Token here.
+    // Do not publish this token on a public website.
     const BLYNK_TOKEN = "lJgZ3C-OWVYFNTLIOb_3wobsZzHyHsFF";
 
-    const API =
-        "https://blynk.cloud/external/api";
+    const API = "https://blynk.cloud/external/api";
 
     const LDR_THRESHOLD = 2000;
 
@@ -283,16 +290,13 @@
     const DARK_READING_IS_HIGH = true;
 
 
+    // BLYNK API REQUEST
     async function api(action, pin, value) {
-
         if (
             !BLYNK_TOKEN ||
-            BLYNK_TOKEN ===
-            "PASTE_YOUR_BLYNK_AUTH_TOKEN_HERE"
+            BLYNK_TOKEN === "PASTE_YOUR_NEW_BLYNK_AUTH_TOKEN_HERE"
         ) {
-            throw new Error(
-                "Enter your Blynk Auth Token."
-            );
+            throw new Error("Enter your Blynk Auth Token.");
         }
 
         let url =
@@ -304,23 +308,41 @@
             url += `=${encodeURIComponent(value)}`;
         }
 
-        const response = await fetch(url);
+        let response;
 
-        if (!response.ok) {
+        try {
+            response = await fetch(url);
+        } catch (error) {
             throw new Error(
-                `Blynk request failed: ${response.status}`
+                "Unable to connect to Blynk. Check your internet connection."
             );
         }
 
-        return (await response.text()).trim();
+        const body = (await response.text()).trim();
+
+        if (!response.ok) {
+            console.error("Blynk API error:", {
+                action,
+                pin,
+                value,
+                status: response.status,
+                response: body
+            });
+
+            throw new Error(
+                `Blynk request failed: ${response.status} (${pin}): ` +
+                (body || "Request rejected")
+            );
+        }
+
+        return body;
     }
 
 
-    // Manual command disables automation first.
+    // MANUAL APPLIANCE CONTROL
+    // Manual fan/LED commands disable their respective automatic modes.
     async function manualCommand(pin, value) {
-
         try {
-
             if (pin === "V0") {
                 await api("update", "V5", 0);
             }
@@ -331,97 +353,105 @@
 
             await api("update", pin, value);
 
-            document.getElementById(
-                "connectionStatus"
-            ).textContent = "Manual command sent.";
+            document.getElementById("connectionStatus").textContent =
+                "Manual command sent successfully.";
 
             await refreshStatus();
 
         } catch (error) {
-
-            document.getElementById(
-                "connectionStatus"
-            ).textContent = error.message;
+            document.getElementById("connectionStatus").textContent =
+                error.message;
         }
     }
 
 
+    // LED STRIP CONTROL
     async function sendPin(pin, value) {
-
         try {
-
             await api("update", pin, value);
 
-            document.getElementById(
-                "connectionStatus"
-            ).textContent = "Command sent to Blynk.";
+            document.getElementById("connectionStatus").textContent =
+                "Command sent to Blynk.";
 
             await refreshStatus();
 
         } catch (error) {
-
-            document.getElementById(
-                "connectionStatus"
-            ).textContent = error.message;
+            document.getElementById("connectionStatus").textContent =
+                error.message;
         }
     }
 
 
+    // ENABLE / DISABLE AUTOMATION
+    // V5 = automatic fan; V6 = automatic LED.
     async function toggleAuto(pin) {
+        const buttonId =
+            pin === "V5" ? "fanAutoButton" : "ledAutoButton";
+
+        const button = document.getElementById(buttonId);
+
+        button.disabled = true;
 
         try {
+            // Read the actual current mode from Blynk.
+            const current = Number(await api("get", pin));
 
-            const current =
-                Number(await api("get", pin));
+            if (current !== 0 && current !== 1) {
+                throw new Error(
+                    `Unexpected automation value for ${pin}: ${current}`
+                );
+            }
 
+            // If ON, turn it OFF. If OFF, turn it ON.
             const nextValue = current === 1 ? 0 : 1;
 
+            // Update the Blynk datastream.
             await api("update", pin, nextValue);
 
-            document.getElementById(
-                "connectionStatus"
-            ).textContent =
-                nextValue === 1
-                    ? "Automatic mode enabled."
-                    : "Automatic mode disabled.";
+            const appliance = pin === "V5" ? "Fan" : "LED";
 
+            document.getElementById("connectionStatus").textContent =
+                nextValue === 1
+                    ? `Automatic ${appliance} control enabled.`
+                    : `Automatic ${appliance} control disabled.`;
+
+            // Refresh mode labels and button text.
             await refreshStatus();
 
         } catch (error) {
-
-            document.getElementById(
-                "connectionStatus"
-            ).textContent = error.message;
+            document.getElementById("connectionStatus").textContent =
+                "Automation error: " + error.message;
+        } finally {
+            button.disabled = false;
         }
     }
 
 
+    // DISPLAY APPLIANCE STATE
     function showState(id, label, value) {
-
-        const element =
-            document.getElementById(id);
-
+        const element = document.getElementById(id);
         const isOn = Number(value) === 1;
 
         element.textContent =
             `${label}: ${isOn ? "ON" : "OFF"}`;
 
         element.className =
-            "status " +
-            (isOn ? "onStatus" : "offStatus");
+            "status " + (isOn ? "onStatus" : "offStatus");
     }
 
 
+    // READ CURRENT STATES FROM BLYNK
     async function refreshStatus() {
-
         try {
-
             const [
-                fan, led, strip,
-                temp, light,
-                fanAuto, ledAuto
+                fan,
+                led,
+                strip,
+                temp,
+                light,
+                fanAuto,
+                ledAuto
             ] = await Promise.all([
-
                 api("get", "V0"),
                 api("get", "V1"),
                 api("get", "V2"),
@@ -429,27 +459,24 @@
                 api("get", "V4"),
                 api("get", "V5"),
                 api("get", "V6")
-
             ]);
 
             showState("fanStatus", "Fan", fan);
             showState("ledStatus", "LED", led);
             showState("stripStatus", "LED Strip", strip);
 
+            // Temperature display
             const tempNumber = Number(temp);
 
-            document.getElementById(
-                "temperature"
-            ).textContent =
+            document.getElementById("temperature").textContent =
                 temp !== "" && Number.isFinite(tempNumber)
                     ? `${tempNumber.toFixed(1)} °C`
                     : "-- °C";
 
+            // LDR display
             const lightNumber = Number(light);
 
-            document.getElementById(
-                "lightValue"
-            ).textContent =
+            document.getElementById("lightValue").textContent =
                 light !== "" && Number.isFinite(lightNumber)
                     ? String(lightNumber)
                     : "--";
@@ -458,64 +485,53 @@
                 light !== "" &&
                 Number.isFinite(lightNumber)
             ) {
-
                 const isDark = DARK_READING_IS_HIGH
                     ? lightNumber >= LDR_THRESHOLD
                     : lightNumber <= LDR_THRESHOLD;
 
-                document.getElementById(
-                    "roomCondition"
-                ).textContent =
+                document.getElementById("roomCondition").textContent =
                     isDark
                         ? "Dark (threshold-based)"
                         : "Bright (threshold-based)";
             }
 
+            // Update automatic mode displays.
             const isFanAuto = Number(fanAuto) === 1;
             const isLedAuto = Number(ledAuto) === 1;
 
-            document.getElementById(
-                "fanMode"
-            ).textContent =
+            document.getElementById("fanMode").textContent =
                 "Mode: " +
-                (isFanAuto ? "Automatic" : "Manual override");
+                (isFanAuto ? "Automatic" : "Manual");
 
-            document.getElementById(
-                "ledMode"
-            ).textContent =
+            document.getElementById("ledMode").textContent =
                 "Mode: " +
-                (isLedAuto ? "Automatic" : "Manual override");
+                (isLedAuto ? "Automatic" : "Manual");
 
-            document.getElementById(
-                "fanAutoButton"
-            ).textContent =
+            // Button labels show the NEXT action.
+            document.getElementById("fanAutoButton").textContent =
                 isFanAuto
                     ? "Disable Auto Fan"
-                    : "Resume Auto Fan";
+                    : "Enable Auto Fan";
 
-            document.getElementById(
-                "ledAutoButton"
-            ).textContent =
+            document.getElementById("ledAutoButton").textContent =
                 isLedAuto
                     ? "Disable Auto LED"
-                    : "Resume Auto LED";
+                    : "Enable Auto LED";
 
-            document.getElementById(
-                "connectionStatus"
-            ).textContent = "Connected to Blynk.";
+            document.getElementById("connectionStatus").textContent =
+                "Connected to Blynk.";
 
         } catch (error) {
-
-            document.getElementById(
-                "connectionStatus"
-            ).textContent =
+            document.getElementById("connectionStatus").textContent =
                 "Unable to read Blynk: " + error.message;
         }
     }
 
 
+    // INITIALIZE AND REFRESH
     refreshStatus();
 
+    // Keep appliance and automation displays synchronized.
     setInterval(refreshStatus, 2500);
 </script>
 
