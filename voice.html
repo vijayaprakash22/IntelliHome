@@ -7,87 +7,98 @@
 
 <style>
 * {
-  box-sizing: border-box;
+    box-sizing: border-box;
 }
 
 body {
-  font-family: Arial, sans-serif;
-  text-align: center;
-  background: #f4f6f8;
-  margin: 0;
-  padding: 30px 15px;
-  color: #172033;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background: #f4f6f8;
+    margin: 0;
+    padding: 30px 15px;
+    color: #172033;
 }
 
-h1 { font-size: 30px; }
+h1 {
+    font-size: 30px;
+}
 
 p {
-  font-size: 17px;
-  line-height: 1.5;
+    font-size: 17px;
+    line-height: 1.5;
 }
 
 button {
-  font-size: 15px;
-  padding: 12px 16px;
-  border-radius: 9px;
-  border: none;
-  cursor: pointer;
-  margin: 6px;
+    font-size: 16px;
+    padding: 13px 20px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    margin: 7px;
+    background: #2563eb;
+    color: white;
 }
 
-#startButton { background: #2563eb; color: white; }
-.on { background: #15803d; color: white; }
-.off { background: #dc2626; color: white; }
-.auto { background: #475569; color: white; }
-
-#heard, #status {
-  margin-top: 16px;
-  font-size: 17px;
-  font-weight: bold;
-  overflow-wrap: anywhere;
+button:disabled {
+    opacity: 0.6;
+    cursor: wait;
 }
 
 .card {
-  max-width: 680px;
-  margin: 20px auto;
-  padding: 20px;
-  background: white;
-  border-radius: 14px;
-  box-shadow: 0 4px 15px rgba(0,0,0,.08);
+    max-width: 680px;
+    margin: 20px auto;
+    padding: 22px;
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 4px 15px rgba(0,0,0,.08);
 }
 
-.small {
-  font-size: 13px;
-  color: #667085;
+#heard, #status, #connectionStatus {
+    margin-top: 16px;
+    overflow-wrap: anywhere;
 }
 
-#confirmPopup {
-  display: none;
-  max-width: 450px;
-  margin: 25px auto;
-  padding: 20px;
-  background: white;
-  border-radius: 14px;
-  box-shadow: 0 4px 15px rgba(0,0,0,.12);
-}
-
-#confirmButton { background: #15803d; color: white; }
-#cancelButton { background: #dc2626; color: white; }
-
-.back {
-  display: block;
-  width: 180px;
-  margin: 30px auto;
-  padding: 12px;
-  text-decoration: none;
-  background: #172033;
-  color: white;
-  border-radius: 10px;
+#heard, #status {
+    font-size: 17px;
+    font-weight: bold;
 }
 
 #connectionStatus {
-  font-size: 14px;
-  overflow-wrap: anywhere;
+    font-size: 14px;
+    color: #475569;
+}
+
+.small {
+    font-size: 14px;
+    color: #667085;
+}
+
+#confirmPopup {
+    display: none;
+    max-width: 450px;
+    margin: 25px auto;
+    padding: 20px;
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 4px 15px rgba(0,0,0,.12);
+}
+
+.back {
+    display: block;
+    width: 180px;
+    margin: 30px auto;
+    padding: 12px;
+    text-decoration: none;
+    background: #172033;
+    color: white;
+    border-radius: 10px;
+}
+
+.mode {
+    padding: 12px;
+    margin: 10px auto;
+    background: #f1f5f9;
+    border-radius: 8px;
 }
 </style>
 </head>
@@ -97,37 +108,56 @@ button {
 <h1>🏠 IntelliHome Voice Control</h1>
 
 <div class="card">
-  <h2>Voice Commands</h2>
+    <h2>🎤 Voice Commands</h2>
 
-  <p><b>Fan</b><br>
-    Enable Fan, Disable Fan
-  </p>
+    <p>
+        <b>Fan Control</b><br>
+        Enable Fan<br>
+        Disable Fan
+    </p>
 
-  <p><b>LED Lamp</b><br>
-    Enable LED, Enable Light, Connect Light<br>
-    Disable LED, Disable Light, Disconnect Light
-  </p>
+    <p>
+        <b>LED Lamp Control</b><br>
+        Enable LED<br>
+        Enable Light<br>
+        Connect Light<br>
+        Disable LED<br>
+        Disable Light<br>
+        Disconnect Light
+    </p>
 
-  <p><b>LED Strip</b><br>
-    Enable Strip, Disable Strip
-  </p>
+    <p>
+        <b>LED Strip Control</b><br>
+        Enable Strip<br>
+        Disable Strip
+    </p>
 
-  <p><b>Sensor Automation</b><br>
-    Enable Automated Fan, Disable Automated Fan<br>
-    Enable Automated Light, Disable Automated Light
-  </p>
+    <p>
+        <b>Automatic Fan Control</b><br>
+        Enable Automated Fan<br>
+        Disable Automated Fan
+    </p>
 
-  <p><b>Modes</b><br>
-    Good Night, Study Mode On
-  </p>
+    <p>
+        <b>Automatic LED Control</b><br>
+        Enable Automated Light<br>
+        Disable Automated Light
+    </p>
 
-  <p><b>All appliances OFF</b><br>
-    Out — confirmation required
-  </p>
+    <p>
+        <b>Custom Scenes</b><br>
+        Good Night<br>
+        Study Mode On
+    </p>
+
+    <p>
+        <b>All Appliances OFF</b><br>
+        Say "Out", then say "Confirm" or "Cancel".
+    </p>
 </div>
 
 <button id="startButton" onclick="startVoice()">
-  🎤 Start Voice Command
+    🎙️ Start Voice Command
 </button>
 
 <p id="heard">Heard: —</p>
@@ -135,503 +165,613 @@ button {
 <p id="connectionStatus">Connecting to Blynk...</p>
 
 <div class="card">
-  <h2>Manual Control and Automation</h2>
+    <h2>Automation Status</h2>
 
-  <p><b>Fan</b></p>
-  <button class="on" onclick="manualCommand('V0',1)">Fan ON</button>
-  <button class="off" onclick="manualCommand('V0',0)">Fan OFF</button>
-  <button class="auto" onclick="setAuto('V5',1)">Enable Auto Fan</button>
-  <button class="auto" onclick="setAuto('V5',0)">Disable Auto Fan</button>
-  <div id="fanMode" class="small">Fan mode: checking...</div>
+    <div class="mode">
+        <b>Fan Mode:</b>
+        <span id="fanMode">Checking...</span>
+    </div>
 
-  <p><b>LED Lamp</b></p>
-  <button class="on" onclick="manualCommand('V1',1)">LED ON</button>
-  <button class="off" onclick="manualCommand('V1',0)">LED OFF</button>
-  <button class="auto" onclick="setAuto('V6',1)">Enable Auto Light</button>
-  <button class="auto" onclick="setAuto('V6',0)">Disable Auto Light</button>
-  <div id="ledMode" class="small">LED mode: checking...</div>
+    <div class="mode">
+        <b>LED Mode:</b>
+        <span id="ledMode">Checking...</span>
+    </div>
 
-  <p><b>LED Strip</b></p>
-  <button class="on" onclick="sendToBlynk('V2',1)">Strip ON</button>
-  <button class="off" onclick="sendToBlynk('V2',0)">Strip OFF</button>
+    <h2>Sensor Readings</h2>
 
-  <p><b>Sensor Readings</b></p>
-  <p>Temperature: <span id="temperature">--</span> °C</p>
-  <p>LDR Reading: <span id="lightValue">--</span></p>
+    <p>
+        Temperature:
+        <b><span id="temperature">--</span> °C</b>
+    </p>
+
+    <p>
+        LDR Reading:
+        <b><span id="lightValue">--</span></b>
+    </p>
 </div>
 
 <div id="confirmPopup">
-  <h2>⚠️ Confirm Action</h2>
-  <p>Are you sure you want to turn OFF all appliances?</p>
-  <button id="confirmButton" onclick="confirmAllOff()">Confirm</button>
-  <button id="cancelButton" onclick="cancelAllOff()">Cancel</button>
+    <h2>⚠️ Confirmation Required</h2>
+    <p>
+        Say <b>Confirm</b> to turn OFF all appliances,
+        or say <b>Cancel</b> to keep their current states.
+    </p>
 </div>
 
 <a class="back" href="index.html">← Back to Home</a>
 
 <script>
-// Use your current Blynk Auth Token.
-// If you regenerate the token, update it here.
+
+// ========================================
+// BLYNK CONFIGURATION
+// ========================================
+
+// Enter your current Blynk Auth Token.
+// If you regenerate your token, update it here.
 const BLYNK_TOKEN = "lJgZ3C-OWVYFNTLIOb_3wobsZzHyHsFF";
+
 const API = "https://blynk.cloud/external/api";
 
 let pendingConfirmation = false;
 let confirmationResolved = false;
-let confirmationRecognition = null;
 let mainRecognition = null;
+let confirmationRecognition = null;
 
 const SpeechRecognition =
-  window.SpeechRecognition || window.webkitSpeechRecognition;
+    window.SpeechRecognition ||
+    window.webkitSpeechRecognition;
 
 
+// ========================================
 // BLYNK API
-// GET:    /get?token=TOKEN&V0
-// UPDATE: /update?token=TOKEN&V0=1
+// ========================================
 
 async function blynk(action, pin, value) {
-  if (
-    !BLYNK_TOKEN ||
-    BLYNK_TOKEN === "PASTE_YOUR_NEW_BLYNK_AUTH_TOKEN_HERE"
-  ) {
-    throw new Error("Add your Blynk Auth Token in voice.html.");
-  }
 
-  const url =
-    `${API}/${action}?token=${encodeURIComponent(BLYNK_TOKEN)}` +
-    `&${pin}` +
-    (value !== undefined ? `=${encodeURIComponent(value)}` : "");
+    if (
+        !BLYNK_TOKEN ||
+        BLYNK_TOKEN ===
+        "PASTE_YOUR_NEW_BLYNK_AUTH_TOKEN_HERE"
+    ) {
+        throw new Error(
+            "Please enter your Blynk Auth Token in voice.html."
+        );
+    }
 
-  let response;
+    let url =
+        `${API}/${action}?token=` +
+        encodeURIComponent(BLYNK_TOKEN) +
+        `&${pin}`;
 
-  try {
-    response = await fetch(url);
-  } catch (error) {
-    throw new Error(
-      "Cannot reach Blynk. Check your internet connection and browser."
-    );
-  }
+    if (value !== undefined) {
+        url += `=${encodeURIComponent(value)}`;
+    }
 
-  const body = (await response.text()).trim();
+    let response;
 
-  if (!response.ok) {
-    console.error("Blynk API error:", {
-      action,
-      pin,
-      value,
-      status: response.status,
-      response: body
-    });
+    try {
+        response = await fetch(url);
+    } catch (error) {
+        throw new Error(
+            "Cannot connect to Blynk. Check your internet connection."
+        );
+    }
 
-    throw new Error(
-      `Blynk error ${response.status} (${pin}): ${body || "Request rejected"}`
-    );
-  }
+    const body = (await response.text()).trim();
 
-  return body;
+    if (!response.ok) {
+        console.error("Blynk API error:", {
+            action: action,
+            pin: pin,
+            value: value,
+            status: response.status,
+            response: body
+        });
+
+        throw new Error(
+            `Blynk error ${response.status} (${pin}): ` +
+            (body || "Request rejected")
+        );
+    }
+
+    return body;
 }
 
 
+// ========================================
 // STATUS AND VOICE FEEDBACK
+// ========================================
 
 function setStatus(message) {
-  document.getElementById("status").textContent =
-    "Status: " + message;
+    document.getElementById("status").textContent =
+        "Status: " + message;
+}
+
+function setConnectionStatus(message) {
+    document.getElementById("connectionStatus").textContent =
+        message;
 }
 
 function speakMessage(message, callback) {
-  if (!("speechSynthesis" in window)) {
-    if (callback) callback();
-    return;
-  }
 
-  window.speechSynthesis.cancel();
+    if (!("speechSynthesis" in window)) {
+        if (callback) callback();
+        return;
+    }
 
-  const utterance = new SpeechSynthesisUtterance(message);
-  utterance.lang = "en-US";
-  utterance.rate = 0.9;
+    window.speechSynthesis.cancel();
 
-  if (callback) {
-    utterance.onend = callback;
-  }
+    const utterance = new SpeechSynthesisUtterance(message);
 
-  window.speechSynthesis.speak(utterance);
+    utterance.lang = "en-US";
+    utterance.rate = 0.9;
+
+    if (callback) {
+        utterance.onend = callback;
+    }
+
+    window.speechSynthesis.speak(utterance);
 }
 
 
+// ========================================
 // MANUAL FAN AND LED CONTROL
-// Arduino BLYNK_WRITE(V0/V1) disables the corresponding automation.
+// Manual control disables the related automation.
+// V0 = Fan, V1 = LED Lamp
+// ========================================
 
 async function manualCommand(pin, value) {
-  try {
-    if (pin === "V0") {
-      await blynk("update", "V5", 0);
-    } else if (pin === "V1") {
-      await blynk("update", "V6", 0);
+
+    try {
+
+        if (pin === "V0") {
+            await blynk("update", "V5", 0);
+        }
+
+        if (pin === "V1") {
+            await blynk("update", "V6", 0);
+        }
+
+        await blynk("update", pin, value);
+
+        const appliance =
+            pin === "V0" ? "Fan" : "LED Lamp";
+
+        const state = value === 1 ? "ON" : "OFF";
+
+        setStatus(`${appliance} ${state}.`);
+        setConnectionStatus("Command sent to Blynk.");
+
+        await refreshStatus();
+
+    } catch (error) {
+
+        setStatus(error.message);
+        setConnectionStatus(error.message);
     }
-
-    await blynk("update", pin, value);
-
-    const appliance = pin === "V0" ? "Fan" : "LED Lamp";
-    const state = value === 1 ? "ON" : "OFF";
-
-    setStatus(`${appliance} ${state}.`);
-
-    await refreshStatus();
-
-  } catch (error) {
-    setStatus(error.message);
-    document.getElementById("connectionStatus").textContent =
-      error.message;
-  }
 }
 
 
+// ========================================
 // LED STRIP CONTROL
+// V2 = LED Strip
+// ========================================
 
 async function sendToBlynk(pin, value) {
-  try {
-    await blynk("update", pin, value);
 
-    const appliance = pin === "V2" ? "LED Strip" : pin;
+    try {
 
-    setStatus(`${appliance} ${value === 1 ? "ON" : "OFF"}.`);
+        await blynk("update", pin, value);
 
-    await refreshStatus();
+        const appliance =
+            pin === "V2" ? "LED Strip" : pin;
 
-  } catch (error) {
-    setStatus(error.message);
-    document.getElementById("connectionStatus").textContent =
-      error.message;
-  }
+        setStatus(
+            `${appliance} ${value === 1 ? "ON" : "OFF"}.`
+        );
+
+        setConnectionStatus("Command sent to Blynk.");
+
+        await refreshStatus();
+
+    } catch (error) {
+
+        setStatus(error.message);
+        setConnectionStatus(error.message);
+    }
 }
 
 
-// AUTOMATION CONTROL
+// ========================================
+// AUTOMATIC MODE CONTROL
+// V5 = Automatic Fan
+// V6 = Automatic LED
+// ========================================
 
 async function setAuto(pin, value) {
-  try {
-    await blynk("update", pin, value);
 
-    const appliance = pin === "V5" ? "Fan" : "Light";
+    try {
 
-    setStatus(
-      `Automatic ${appliance} control ${value === 1 ? "enabled" : "disabled"}.`
-    );
+        await blynk("update", pin, value);
 
-    await refreshStatus();
+        const appliance =
+            pin === "V5" ? "Fan" : "Light";
 
-  } catch (error) {
-    setStatus(error.message);
-    document.getElementById("connectionStatus").textContent =
-      error.message;
-  }
+        if (value === 1) {
+
+            setStatus(
+                `Automatic ${appliance} control enabled.`
+            );
+
+            speakMessage(
+                `Automatic ${appliance} control enabled.`
+            );
+
+        } else {
+
+            setStatus(
+                `Automatic ${appliance} control disabled.`
+            );
+
+            speakMessage(
+                `Automatic ${appliance} control disabled.`
+            );
+        }
+
+        setConnectionStatus("Command sent to Blynk.");
+
+        await refreshStatus();
+
+    } catch (error) {
+
+        setStatus(error.message);
+        setConnectionStatus(error.message);
+    }
 }
 
 
-// REFRESH BLYNK STATUS
+// ========================================
+// REFRESH AUTOMATION AND SENSOR STATUS
+// ========================================
 
 async function refreshStatus() {
-  try {
-    const [fanAuto, ledAuto, temperature, lightValue] =
-      await Promise.all([
-        blynk("get", "V5"),
-        blynk("get", "V6"),
-        blynk("get", "V3"),
-        blynk("get", "V4")
-      ]);
 
-    document.getElementById("fanMode").textContent =
-      "Fan mode: " +
-      (Number(fanAuto) === 1 ? "Automatic" : "Manual");
+    try {
 
-    document.getElementById("ledMode").textContent =
-      "LED mode: " +
-      (Number(ledAuto) === 1 ? "Automatic" : "Manual");
+        const [
+            fanAuto,
+            ledAuto,
+            temperature,
+            lightValue
+        ] = await Promise.all([
 
-    const temp = Number(temperature);
-    document.getElementById("temperature").textContent =
-      temperature !== "" && Number.isFinite(temp)
-        ? temp.toFixed(1)
-        : "--";
+            blynk("get", "V5"),
+            blynk("get", "V6"),
+            blynk("get", "V3"),
+            blynk("get", "V4")
 
-    const light = Number(lightValue);
-    document.getElementById("lightValue").textContent =
-      lightValue !== "" && Number.isFinite(light)
-        ? String(light)
-        : "--";
+        ]);
 
-    document.getElementById("connectionStatus").textContent =
-      "Connected to Blynk.";
+        document.getElementById("fanMode").textContent =
+            Number(fanAuto) === 1
+                ? "Automatic"
+                : "Manual";
 
-  } catch (error) {
-    document.getElementById("connectionStatus").textContent =
-      "Blynk status error: " + error.message;
-  }
+        document.getElementById("ledMode").textContent =
+            Number(ledAuto) === 1
+                ? "Automatic"
+                : "Manual";
+
+        const temp = Number(temperature);
+
+        document.getElementById("temperature").textContent =
+            temperature !== "" && Number.isFinite(temp)
+                ? temp.toFixed(1)
+                : "--";
+
+        const light = Number(lightValue);
+
+        document.getElementById("lightValue").textContent =
+            lightValue !== "" && Number.isFinite(light)
+                ? String(light)
+                : "--";
+
+        setConnectionStatus("Connected to Blynk.");
+
+    } catch (error) {
+
+        setConnectionStatus(
+            "Blynk status error: " + error.message
+        );
+    }
 }
 
 
+// ========================================
 // START VOICE RECOGNITION
+// ========================================
 
 function startVoice() {
-  if (!SpeechRecognition) {
-    setStatus("Voice recognition is unsupported. Try Chrome or Edge.");
-    return;
-  }
 
-  if (pendingConfirmation) {
-    setStatus("Please confirm or cancel the pending action.");
-    return;
-  }
+    if (!SpeechRecognition) {
 
-  mainRecognition = new SpeechRecognition();
-  mainRecognition.lang = "en-US";
-  mainRecognition.continuous = false;
-  mainRecognition.interimResults = false;
-  mainRecognition.maxAlternatives = 1;
+        setStatus(
+            "Voice recognition is unsupported. Use Chrome or Edge."
+        );
 
-  setStatus("Listening...");
-
-  mainRecognition.onresult = event => {
-    const command =
-      event.results[0][0].transcript.toLowerCase().trim();
-
-    document.getElementById("heard").textContent =
-      "Heard: " + command;
-
-    processCommand(command);
-  };
-
-  mainRecognition.onerror = event => {
-    if (!pendingConfirmation) {
-      setStatus("Voice error: " + event.error);
+        return;
     }
-  };
 
-  try {
-    mainRecognition.start();
-  } catch (error) {
-    setStatus("Unable to start voice recognition. Try again.");
-  }
+    if (pendingConfirmation) {
+
+        setStatus(
+            'Say "Confirm" or "Cancel" to finish the pending action.'
+        );
+
+        return;
+    }
+
+    mainRecognition = new SpeechRecognition();
+
+    mainRecognition.lang = "en-US";
+    mainRecognition.continuous = false;
+    mainRecognition.interimResults = false;
+    mainRecognition.maxAlternatives = 1;
+
+    setStatus("Listening...");
+
+    mainRecognition.onresult = event => {
+
+        const command =
+            event.results[0][0].transcript
+                .toLowerCase()
+                .trim();
+
+        document.getElementById("heard").textContent =
+            "Heard: " + command;
+
+        processCommand(command);
+    };
+
+    mainRecognition.onerror = event => {
+
+        if (!pendingConfirmation) {
+            setStatus("Voice error: " + event.error);
+        }
+    };
+
+    try {
+
+        mainRecognition.start();
+
+    } catch (error) {
+
+        setStatus(
+            "Unable to start voice recognition. Try again."
+        );
+    }
 }
 
 
+// ========================================
 // PROCESS VOICE COMMANDS
+// ========================================
 
 async function processCommand(command) {
 
-  // ALL APPLIANCES OFF: REQUIRE CONFIRMATION
-  if (
-    /\bout\b/.test(command) ||
-    command.includes("all appliances off")
-  ) {
-    requestAllOffConfirmation();
-    return;
-  }
+    // ALL APPLIANCES OFF: REQUIRE CONFIRMATION
+    if (
+        /\bout\b/.test(command) ||
+        command.includes("all appliances off")
+    ) {
+        requestAllOffConfirmation();
+        return;
+    }
 
-  // CHECK AUTOMATION COMMANDS BEFORE MANUAL COMMANDS
-  if (command.includes("enable automated fan")) {
-    await setAuto("V5", 1);
-    return;
-  }
 
-  if (command.includes("disable automated fan")) {
-    await setAuto("V5", 0);
-    return;
-  }
+    // AUTOMATIC FAN CONTROL
+    if (command.includes("enable automated fan")) {
 
-  if (command.includes("enable automated light")) {
-    await setAuto("V6", 1);
-    return;
-  }
+        await setAuto("V5", 1);
+        return;
+    }
 
-  if (command.includes("disable automated light")) {
-    await setAuto("V6", 0);
-    return;
-  }
+    if (command.includes("disable automated fan")) {
 
-  // GOOD NIGHT MODE
-  if (command.includes("good night")) {
-    await manualCommand("V0", 1);
-    await manualCommand("V1", 0);
-    await sendToBlynk("V2", 0);
+        await setAuto("V5", 0);
+        return;
+    }
 
-    setStatus("Good Night Mode requested.");
-    speakMessage("Good Night mode. Fan on, LED off, strip off.");
-    return;
-  }
 
-  // STUDY MODE
-  if (
-    command.includes("study mode on") ||
-    command.includes("study mode")
-  ) {
-    await manualCommand("V0", 1);
-    await manualCommand("V1", 1);
-    await sendToBlynk("V2", 1);
+    // AUTOMATIC LED CONTROL
+    if (command.includes("enable automated light")) {
 
-    setStatus("Study Mode requested.");
-    speakMessage("Study mode. All appliances on.");
-    return;
-  }
+        await setAuto("V6", 1);
+        return;
+    }
 
-  // FAN
-  if (command.includes("enable fan")) {
-    await manualCommand("V0", 1);
-    return;
-  }
+    if (command.includes("disable automated light")) {
 
-  if (command.includes("disable fan")) {
-    await manualCommand("V0", 0);
-    return;
-  }
+        await setAuto("V6", 0);
+        return;
+    }
 
-  // LED LAMP
-  if (
-    command.includes("enable led") ||
-    command.includes("enable light") ||
-    command.includes("connect light")
-  ) {
-    await manualCommand("V1", 1);
-    return;
-  }
 
-  if (
-    command.includes("disable led") ||
-    command.includes("disable light") ||
-    command.includes("disconnect light")
-  ) {
-    await manualCommand("V1", 0);
-    return;
-  }
+    // GOOD NIGHT MODE
+    if (command.includes("good night")) {
 
-  // LED STRIP
-  if (command.includes("enable strip")) {
-    await sendToBlynk("V2", 1);
-    return;
-  }
+        await manualCommand("V0", 1);
+        await manualCommand("V1", 0);
+        await sendToBlynk("V2", 0);
 
-  if (command.includes("disable strip")) {
-    await sendToBlynk("V2", 0);
-    return;
-  }
+        setStatus("Good Night Mode completed.");
 
-  setStatus("Command not recognized. Please try again.");
+        speakMessage(
+            "Good Night mode. Fan on, LED off, strip off."
+        );
+
+        return;
+    }
+
+
+    // STUDY MODE
+    if (
+        command.includes("study mode on") ||
+        command.includes("study mode")
+    ) {
+
+        await manualCommand("V0", 1);
+        await manualCommand("V1", 1);
+        await sendToBlynk("V2", 1);
+
+        setStatus("Study Mode completed.");
+
+        speakMessage(
+            "Study mode. All appliances on."
+        );
+
+        return;
+    }
+
+
+    // FAN CONTROL
+    if (command.includes("enable fan")) {
+
+        await manualCommand("V0", 1);
+        return;
+    }
+
+    if (command.includes("disable fan")) {
+
+        await manualCommand("V0", 0);
+        return;
+    }
+
+
+    // LED LAMP CONTROL
+    if (
+        command.includes("enable led") ||
+        command.includes("enable light") ||
+        command.includes("connect light")
+    ) {
+
+        await manualCommand("V1", 1);
+        return;
+    }
+
+    if (
+        command.includes("disable led") ||
+        command.includes("disable light") ||
+        command.includes("disconnect light")
+    ) {
+
+        await manualCommand("V1", 0);
+        return;
+    }
+
+
+    // LED STRIP CONTROL
+    if (command.includes("enable strip")) {
+
+        await sendToBlynk("V2", 1);
+        return;
+    }
+
+    if (command.includes("disable strip")) {
+
+        await sendToBlynk("V2", 0);
+        return;
+    }
+
+
+    // CONFIRMATION RESPONSES
+    if (pendingConfirmation) {
+
+        if (/\bconfirm\b|\byes\b/.test(command)) {
+            await confirmAllOff();
+            return;
+        }
+
+        if (/\bcancel\b|\bno\b/.test(command)) {
+            cancelAllOff();
+            return;
+        }
+    }
+
+    setStatus("Command not recognized. Please try again.");
 }
 
 
+// ========================================
 // ALL-APPLIANCES-OFF CONFIRMATION
+// ========================================
 
 function requestAllOffConfirmation() {
-  pendingConfirmation = true;
-  confirmationResolved = false;
 
-  document.getElementById("confirmPopup").style.display = "block";
+    pendingConfirmation = true;
+    confirmationResolved = false;
 
-  setStatus("Waiting for your confirmation.");
+    document.getElementById("confirmPopup").style.display =
+        "block";
 
-  speakMessage(
-    "Are you sure you want to turn off all appliances? Say Confirm or Cancel, or click a button.",
-    startConfirmationListening
-  );
+    setStatus(
+        'Waiting for confirmation. Say "Confirm" or "Cancel".'
+    );
+
+    speakMessage(
+        "Are you sure you want to turn off all appliances? " +
+        "Say Confirm or Cancel.",
+        startConfirmationListening
+    );
 }
+
 
 function startConfirmationListening() {
-  if (!pendingConfirmation || !SpeechRecognition) return;
 
-  const recognition = new SpeechRecognition();
-  confirmationRecognition = recognition;
+    if (!pendingConfirmation || !SpeechRecognition) {
 
-  recognition.lang = "en-US";
-  recognition.continuous = false;
-  recognition.interimResults = false;
-  recognition.maxAlternatives = 1;
+        setStatus(
+            'Please start voice recognition and say "Confirm" or "Cancel".'
+        );
 
-  recognition.onresult = event => {
-    if (!pendingConfirmation) return;
-
-    const answer =
-      event.results[0][0].transcript.toLowerCase().trim();
-
-    document.getElementById("heard").textContent =
-      "Heard: " + answer;
-
-    if (/\bconfirm\b|\byes\b/.test(answer)) {
-      confirmAllOff();
-    } else if (/\bcancel\b|\bno\b/.test(answer)) {
-      cancelAllOff();
-    } else {
-      setStatus("Please say Confirm or Cancel, or click a button.");
+        return;
     }
-  };
 
-  recognition.onerror = event => {
-    if (pendingConfirmation) {
-      setStatus(
-        "Use the Confirm or Cancel buttons. (" + event.error + ")"
-      );
-    }
-  };
+    confirmationRecognition = new SpeechRecognition();
 
-  try {
-    recognition.start();
-  } catch (error) {
-    setStatus("Use the Confirm or Cancel buttons.");
-  }
-}
+    confirmationRecognition.lang = "en-US";
+    confirmationRecognition.continuous = false;
+    confirmationRecognition.interimResults = false;
+    confirmationRecognition.maxAlternatives = 1;
 
-async function confirmAllOff() {
-  if (!pendingConfirmation || confirmationResolved) return;
+    confirmationRecognition.onresult = async event => {
 
-  confirmationResolved = true;
-  pendingConfirmation = false;
+        if (!pendingConfirmation) return;
 
-  stopConfirmationListening();
+        const answer =
+            event.results[0][0].transcript
+                .toLowerCase()
+                .trim();
 
-  document.getElementById("confirmPopup").style.display = "none";
+        document.getElementById("heard").textContent =
+            "Heard: " + answer;
 
-  // Each operation is awaited so requests execute in order.
-  await manualCommand("V0", 0);
-  await manualCommand("V1", 0);
-  await sendToBlynk("V2", 0);
+        if (/\bconfirm\b|\byes\b/.test(answer)) {
 
-  setStatus("Confirmed: all appliances OFF.");
-  speakMessage("Confirmed. All appliances are off.");
-}
+            await confirmAllOff();
 
-function cancelAllOff() {
-  if (!pendingConfirmation || confirmationResolved) return;
+        } else if (/\bcancel\b|\bno\b/.test(answer)) {
 
-  confirmationResolved = true;
-  pendingConfirmation = false;
+            cancelAllOff();
 
-  stopConfirmationListening();
+        } else {
 
-  document.getElementById("confirmPopup").style.display = "none";
+            setStatus(
+                'Not recognized. Say "Confirm" or "Cancel".'
+            );
+        }
+    };
 
-  setStatus("Cancelled. No appliances were changed.");
-  speakMessage("Cancelled. No appliances were changed.");
-}
+    confirmationRecognition.onerror = event => {
 
-function stopConfirmationListening() {
-  if (confirmationRecognition) {
-    confirmationRecognition.onresult = null;
-    confirmationRecognition.onerror = null;
-
-    try {
-      confirmationRecognition.abort();
-    } catch (error) {}
-
-    confirmationRecognition = null;
-  }
-}
-
-
-// INITIALIZE
-
-refreshStatus();
-setInterval(refreshStatus, 3000);
-
-</script>
-
-</body>
-</html>
+        if (pendingConfirmation)
