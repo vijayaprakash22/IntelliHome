@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -91,6 +90,7 @@ button {
 
 <div class="card">
   <h2>Voice Commands</h2>
+
   <p>
     <b>Fan:</b><br>
     Enable Fan, Disable Fan
@@ -157,15 +157,19 @@ button {
 
 <div class="card">
   <h3>Automation Instructions</h3>
+
   <p>
     Say <b>Enable Automated Fan</b> to enable temperature-based fan control.
   </p>
+
   <p>
     Say <b>Disable Automated Fan</b> to disable automatic fan control.
   </p>
+
   <p>
     Say <b>Enable Automated Light</b> to enable darkness-based LED control.
   </p>
+
   <p>
     Say <b>Disable Automated Light</b> to disable automatic LED control.
   </p>
@@ -174,9 +178,9 @@ button {
 <a class="back" href="index.html">← Back to Home</a>
 
 <script>
-// Add your NEW Blynk device Auth Token here.
+// Add your new Blynk device Auth Token here.
 // Avoid exposing this token on publicly hosted pages.
-const BLYNK_TOKEN = "PASTE_YOUR_NEW_BLYNK_AUTH_TOKEN_HERE";
+const BLYNK_TOKEN = "lJgZ3C-OWVYFNTLIOb_3wobsZzHyHsFF";
 const API = "https://blynk.cloud/external/api";
 
 let pendingConfirmation = false;
@@ -193,7 +197,7 @@ const SpeechRecognition =
 async function blynk(action, pin, value) {
   if (
     !BLYNK_TOKEN ||
-    BLYNK_TOKEN === "lJgZ3C-OWVYFNTLIOb_3wobsZzHyHsFF"
+    BLYNK_TOKEN === "PASTE_YOUR_NEW_BLYNK_AUTH_TOKEN_HERE"
   ) {
     throw new Error("Please add your Blynk Auth Token in voice.html.");
   }
@@ -393,7 +397,7 @@ function processCommand(command) {
   } else if (command.includes("disable automated light")) {
     setAuto("V6", 0);
 
-  // GOOD NIGHT MODE - UNCHANGED
+  // GOOD NIGHT MODE
   } else if (command.includes("good night")) {
     manualCommand("V0", 1);
     manualCommand("V1", 0);
@@ -402,8 +406,9 @@ function processCommand(command) {
     setStatus("Good Night Mode requested");
     speakMessage("Good Night mode. Fan on, LED off, strip off.");
 
-  // STUDY MODE - UNCHANGED
-  } else if (command.includes("study mode")) {
+  // STUDY MODE
+  } else if (command.includes("study mode on") ||
+             command.includes("study mode")) {
     manualCommand("V0", 1);
     manualCommand("V1", 1);
     sendToBlynk("V2", 1);
