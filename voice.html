@@ -26,21 +26,22 @@ body {
 
 header {
     text-align: center;
-    margin-bottom: 28px;
+    margin-bottom: 25px;
 }
 
 .logo {
     font-size: 30px;
     font-weight: bold;
-    margin-bottom: 8px;
 }
 
 .logo span {
     color: #22d3ee;
 }
 
-header p {
+header p,
+.note {
     color: #b8c4d8;
+    line-height: 1.7;
 }
 
 .card {
@@ -61,10 +62,11 @@ h2 {
     font-size: 17px;
     line-height: 1.6;
     overflow-wrap: anywhere;
+    margin: 15px 0;
 }
 
 .mic-icon {
-    font-size: 54px;
+    font-size: 52px;
     margin: 15px 0;
 }
 
@@ -89,7 +91,8 @@ button:focus-visible {
     outline-offset: 3px;
 }
 
-.stop-button {
+.stop-button,
+.cancel-button {
     background: #fca5a5;
 }
 
@@ -104,17 +107,11 @@ button:focus-visible {
     border: 1px solid #30415b;
     border-radius: 12px;
     padding: 14px;
-    line-height: 1.7;
+    line-height: 1.8;
 }
 
 .command strong {
     color: #67e8f9;
-}
-
-.note {
-    color: #cbd5e1;
-    font-size: 14px;
-    line-height: 1.7;
 }
 
 .sensor-grid {
@@ -185,6 +182,12 @@ footer {
     <button class="stop-button" onclick="stopVoice()">
         Stop Listening
     </button>
+
+    <div id="confirmation" hidden>
+        <p>Do you want to turn off all appliances?</p>
+        <button onclick="confirmOut()">Confirm</button>
+        <button class="cancel-button" onclick="cancelOut()">Cancel</button>
+    </div>
 </section>
 
 <section class="card">
@@ -198,7 +201,7 @@ footer {
         </div>
 
         <div class="command">
-            <strong>LED Light</strong><br>
+            <strong>LED Lamp</strong><br>
             Enable light<br>
             Disable light
         </div>
@@ -236,8 +239,8 @@ footer {
     </div>
 
     <p class="note">
-        When you say "Out", IntelliHome asks for confirmation.
-        Say "Confirm" to turn off all appliances or "Cancel" to stop.
+        Saying "Out" asks for confirmation before switching off
+        all appliances.
     </p>
 </section>
 
@@ -257,45 +260,47 @@ footer {
     </div>
 </section>
 
-<footer>
-    IntelliHome — Voice-Based Smart Home Control
-</footer>
+<footer>IntelliHome — Voice-Based Smart Home Control</footer>
 
 </div>
 
 <script>
-/* Replace this placeholder with your NEW Blynk token. */
-const BLYNK_TOKEN = "PASTE_YOUR_NEW_BLYNK_AUTH_TOKEN_HERE";
+/* Replace with your newly generated Blynk token. */
+const BLYNK_TOKEN = "lJgZ3C-OWVYFNTLIOb_3wobsZzHyHsFF";
 const API = "https://blynk.cloud/external/api";
 
 const statusElement = document.getElementById("status");
 const heardElement = document.getElementById("heard");
+const confirmationElement = document.getElementById("confirmation");
 
 const SpeechRecognition =
-    window.SpeechRecognition || window.webkitSpeechRecognition;
+    window.SpeechRecognition ||
+    window.webkitSpeechRecognition;
 
 let recognition = null;
 let listening = false;
+let shouldListen = false;
 let pendingOutConfirmation = false;
 let processingCommand = false;
-let lastCommandTime = 0;
+let lastProcessedText = "";
+let lastProcessedAt = 0;
 
-/* Choose a likely male English voice when one is available. */
+/* Select a likely male English voice if installed. */
 let selectedVoice = null;
 
 function chooseMaleVoice() {
     if (!("speechSynthesis" in window)) return;
 
-    const voices = window.speechSynthesis.getVoices();
+    const voices = speechSynthesis.getVoices();
     const englishVoices = voices.filter(v =>
         /^en([-_]|$)/i.test(v.lang)
     );
 
-    const preferredNames =
-        /david|mark|guy|daniel|james|alex|tom|male/i;
+    const maleNamePattern =
+        /\b(david|mark|guy|daniel|james|alex|tom|male)\b/i;
 
     selectedVoice =
-        englishVoices.find(v => preferredNames.test(v.name)) ||
+        englishVoices.find(v => maleNamePattern.test(v.name)) ||
         englishVoices.find(v => /en-IN/i.test(v.lang)) ||
         englishVoices[0] ||
         voices[0] ||
@@ -304,7 +309,7 @@ function chooseMaleVoice() {
 
 if ("speechSynthesis" in window) {
     chooseMaleVoice();
-    window.speechSynthesis.onvoiceschanged = chooseMaleVoice;
+    speechSynthesis.onvoiceschanged = chooseMaleVoice;
 }
 
 function speakMessage(message) {
@@ -312,19 +317,19 @@ function speakMessage(message) {
 
     if (!("speechSynthesis" in window)) return;
 
-    window.speechSynthesis.cancel();
+    speechSynthesis.cancel();
 
     const utterance = new SpeechSynthesisUtterance(message);
-    utterance.lang = "en-IN";
     utterance.rate = 0.95;
     utterance.pitch = 0.85;
+    utterance.lang = "en-IN";
 
     if (selectedVoice) {
         utterance.voice = selectedVoice;
         utterance.lang = selectedVoice.lang;
     }
 
-    window.speechSynthesis.speak(utterance);
+    speechSynthesis.speak(utterance);
 }
 
 function showStatus(message) {
@@ -334,57 +339,56 @@ function showStatus(message) {
 async function blynkWrite(pin, value) {
     if (
         !BLYNK_TOKEN ||
-        BLYNK_TOKEN === "lJgZ3C-OWVYFNTLIOb_3wobsZzHyHsFF"
+        BLYNK_TOKEN === "PASTE_YOUR_NEW_BLYNK_AUTH_TOKEN_HERE"
     ) {
-        throw new Error("Please configure your Blynk token.");
+        throw new Error("Blynk token is missing.");
     }
 
     const url =
-        `${API}/update/${encodeURIComponent(pin)}?token=` +
-        `${encodeURIComponent(BLYNK_TOKEN)}&value=` +
-        `${encodeURIComponent(value)}`;
+        `${API}/update/${encodeURIComponent(pin)}` +
+        `?token=${encodeURIComponent(BLYNK_TOKEN)}` +
+        `&value=${encodeURIComponent(value)}`;
 
-    const response = await fetch(url, { method: "GET" });
+    const response = await fetch(url);
 
     if (!response.ok) {
-        throw new Error(`Blynk update failed for ${pin}`);
+        throw new Error(`Blynk update failed: ${pin}`);
     }
 }
 
 async function blynkRead(pin) {
     const url =
-        `${API}/get/${encodeURIComponent(pin)}?token=` +
-        encodeURIComponent(BLYNK_TOKEN);
+        `${API}/get/${encodeURIComponent(pin)}` +
+        `?token=${encodeURIComponent(BLYNK_TOKEN)}`;
 
     const response = await fetch(url);
 
     if (!response.ok) {
-        throw new Error("Unable to read Blynk data");
+        throw new Error(`Blynk read failed: ${pin}`);
     }
 
     const data = await response.json();
 
-    if (Array.isArray(data)) return data[0];
-    return data;
+    return Array.isArray(data) ? data[0] : data;
 }
 
-/* Perform an operation and speak only its short result. */
-async function performCommand(operation, successMessage) {
+async function performCommand(action, successMessage) {
     if (processingCommand) return;
 
     processingCommand = true;
 
     try {
-        await operation();
+        await action();
         speakMessage(successMessage);
     } catch (error) {
-        console.error(error);
-        speakMessage("Command failed. Please check the connection.");
+        console.error("Command operation failed:", error);
+        speakMessage("Command failed. Check the Blynk connection.");
     } finally {
         processingCommand = false;
     }
 }
 
+/* Appliance controls */
 async function setFan(enabled) {
     await blynkWrite("V5", 0);
     await blynkWrite("V0", enabled ? 1 : 0);
@@ -399,6 +403,7 @@ async function setStrip(enabled) {
     await blynkWrite("V2", enabled ? 1 : 0);
 }
 
+/* Automatic modes */
 async function setAutoFan(enabled) {
     await blynkWrite("V5", enabled ? 1 : 0);
 }
@@ -407,10 +412,10 @@ async function setAutoLED(enabled) {
     await blynkWrite("V6", enabled ? 1 : 0);
 }
 
+/* Scene modes */
 async function activateStudyMode() {
     await blynkWrite("V5", 0);
     await blynkWrite("V6", 0);
-
     await blynkWrite("V0", 1);
     await blynkWrite("V1", 1);
     await blynkWrite("V2", 1);
@@ -419,7 +424,6 @@ async function activateStudyMode() {
 async function activateGoodNightMode() {
     await blynkWrite("V5", 0);
     await blynkWrite("V6", 0);
-
     await blynkWrite("V0", 1);
     await blynkWrite("V1", 0);
     await blynkWrite("V2", 0);
@@ -428,30 +432,45 @@ async function activateGoodNightMode() {
 async function turnEverythingOff() {
     await blynkWrite("V5", 0);
     await blynkWrite("V6", 0);
-
     await blynkWrite("V0", 0);
     await blynkWrite("V1", 0);
     await blynkWrite("V2", 0);
 }
 
-/*
- Normalize speech text and tolerate common recognition variations.
- Match specific phrases before shorter phrases.
-*/
+/* Normalize the words returned by speech recognition. */
 function normalizeCommand(text) {
     return text
         .toLowerCase()
-        .replace(/[^\w\s]/g, " ")
+        .replace(/[^a-z0-9\s]/g, " ")
         .replace(/\s+/g, " ")
         .trim()
-        .replace(/^(please|hey|okay|ok|intellihome)\s+/g, "")
-        .replace(/\s+(please|now)$/g, "");
+        .replace(/^(please|hey|okay|ok|intellihome)\s+/, "")
+        .replace(/\s+(please|now)$/, "");
 }
 
-function hasAny(text, phrases) {
+function containsAny(text, phrases) {
     return phrases.some(phrase =>
         text === phrase || text.includes(phrase)
     );
+}
+
+/*
+ Return true for commands asking to turn something ON.
+ Includes "enable", "turn on", "switch on", "start", and
+ the short forms "fan on", "light on", and "strip on".
+*/
+function wantsOn(text) {
+    return containsAny(text, [
+        "enable", "activate", "turn on", "switch on",
+        "start", " on"
+    ]) || text.endsWith("on");
+}
+
+function wantsOff(text) {
+    return containsAny(text, [
+        "disable", "deactivate", "turn off", "switch off",
+        "stop", " off"
+    ]) || text.endsWith("off");
 }
 
 function processCommand(rawText) {
@@ -460,22 +479,18 @@ function processCommand(rawText) {
     if (!command) return;
 
     heardElement.textContent = "Recognized command: " + rawText;
+    console.log("Voice heard:", rawText);
+    console.log("Normalized command:", command);
 
-    /* Handle the pending OUT confirmation first. */
+    /* Confirmation takes priority while OUT is pending. */
     if (pendingOutConfirmation) {
-        if (hasAny(command, ["confirm", "confirmed", "yes", "turn everything off"])) {
-            pendingOutConfirmation = false;
-
-            performCommand(
-                turnEverythingOff,
-                "All appliances turned off."
-            );
+        if (containsAny(command, ["confirm", "confirmed", "yes"])) {
+            confirmOut();
             return;
         }
 
-        if (hasAny(command, ["cancel", "no", "don't", "do not"])) {
-            pendingOutConfirmation = false;
-            speakMessage("Cancelled.");
+        if (containsAny(command, ["cancel", "cancelled", "canceled", "no"])) {
+            cancelOut();
             return;
         }
 
@@ -483,187 +498,148 @@ function processCommand(rawText) {
         return;
     }
 
-    /* OUT always requires confirmation. */
+    /* OUT must be handled before appliance commands. */
     if (
         command === "out" ||
-        command === "go out" ||
         command === "out mode" ||
+        command === "go out" ||
         command === "exit mode"
     ) {
         pendingOutConfirmation = true;
+        confirmationElement.hidden = false;
         speakMessage("Turn off all appliances? Say confirm or cancel.");
         return;
     }
 
-    /* Scene commands. */
-    if (hasAny(command, ["study mode", "study mood", "study"]) ) {
+    /* Scenes */
+    if (containsAny(command, [
+        "study mode", "study mood", "activate study mode",
+        "start study mode"
+    ])) {
         performCommand(activateStudyMode, "Study mode activated.");
         return;
     }
 
-    if (hasAny(command, ["good night", "goodnight", "good night mode"])) {
+    if (containsAny(command, [
+        "good night", "goodnight", "good night mode",
+        "goodnight mode", "activate night mode"
+    ])) {
         performCommand(activateGoodNightMode, "Good Night mode activated.");
         return;
     }
 
-    /* Automatic fan commands. */
-    if (
-        hasAny(command, [
-            "enable automated fan",
-            "enable automatic fan",
-            "turn on automatic fan",
-            "turn on automated fan",
-            "automatic fan on",
-            "auto fan on"
-        ])
-    ) {
-        performCommand(
-            () => setAutoFan(true),
-            "Automatic fan enabled."
-        );
-        return;
+    /* Automatic fan commands */
+    if (containsAny(command, [
+        "automated fan", "automatic fan", "auto fan"
+    ])) {
+        if (wantsOn(command)) {
+            performCommand(() => setAutoFan(true), "Automatic fan enabled.");
+            return;
+        }
+
+        if (wantsOff(command)) {
+            performCommand(() => setAutoFan(false), "Automatic fan disabled.");
+            return;
+        }
     }
 
-    if (
-        hasAny(command, [
-            "disable automated fan",
-            "disable automatic fan",
-            "turn off automatic fan",
-            "turn off automated fan",
-            "automatic fan off",
-            "auto fan off"
-        ])
-    ) {
-        performCommand(
-            () => setAutoFan(false),
-            "Automatic fan disabled."
-        );
-        return;
+    /* Automatic LED commands */
+    if (containsAny(command, [
+        "automated led", "automatic led", "automated light",
+        "automatic light", "auto led"
+    ])) {
+        if (wantsOn(command)) {
+            performCommand(() => setAutoLED(true), "Automatic LED enabled.");
+            return;
+        }
+
+        if (wantsOff(command)) {
+            performCommand(() => setAutoLED(false), "Automatic LED disabled.");
+            return;
+        }
     }
 
-    /* Automatic LED commands. */
-    if (
-        hasAny(command, [
-            "enable automated led",
-            "enable automatic led",
-            "enable automated light",
-            "enable automatic light",
-            "turn on automatic led",
-            "turn on automated led",
-            "auto led on"
-        ])
-    ) {
-        performCommand(
-            () => setAutoLED(true),
-            "Automatic LED enabled."
-        );
-        return;
+    /* LED strip must be checked before generic LED commands. */
+    if (containsAny(command, ["strip", "led strip", "light strip"])) {
+        if (wantsOn(command)) {
+            performCommand(() => setStrip(true), "LED strip turned on.");
+            return;
+        }
+
+        if (wantsOff(command)) {
+            performCommand(() => setStrip(false), "LED strip turned off.");
+            return;
+        }
     }
 
-    if (
-        hasAny(command, [
-            "disable automated led",
-            "disable automatic led",
-            "disable automated light",
-            "disable automatic light",
-            "turn off automatic led",
-            "turn off automated led",
-            "auto led off"
-        ])
-    ) {
-        performCommand(
-            () => setAutoLED(false),
-            "Automatic LED disabled."
-        );
-        return;
+    /* Fan commands */
+    if (containsAny(command, ["fan", "ceiling fan"])) {
+        if (wantsOn(command)) {
+            performCommand(() => setFan(true), "Fan turned on.");
+            return;
+        }
+
+        if (wantsOff(command)) {
+            performCommand(() => setFan(false), "Fan turned off.");
+            return;
+        }
     }
 
-    /* Fan commands. */
-    if (
-        hasAny(command, [
-            "enable fan", "fan on", "turn on fan",
-            "switch on fan", "start fan"
-        ])
-    ) {
-        performCommand(() => setFan(true), "Fan turned on.");
-        return;
+    /* LED lamp commands */
+    if (containsAny(command, ["light", "led", "lamp", "bulb"])) {
+        if (wantsOn(command)) {
+            performCommand(() => setLED(true), "LED turned on.");
+            return;
+        }
+
+        if (wantsOff(command)) {
+            performCommand(() => setLED(false), "LED turned off.");
+            return;
+        }
     }
 
-    if (
-        hasAny(command, [
-            "disable fan", "fan off", "turn off fan",
-            "switch off fan", "stop fan"
-        ])
-    ) {
-        performCommand(() => setFan(false), "Fan turned off.");
-        return;
-    }
-
-    /* Strip commands before generic light commands. */
-    if (
-        hasAny(command, [
-            "enable strip", "strip on", "turn on strip",
-            "turn on led strip", "enable led strip",
-            "switch on strip", "start strip"
-        ])
-    ) {
-        performCommand(() => setStrip(true), "LED strip turned on.");
-        return;
-    }
-
-    if (
-        hasAny(command, [
-            "disable strip", "strip off", "turn off strip",
-            "turn off led strip", "disable led strip",
-            "switch off strip", "stop strip"
-        ])
-    ) {
-        performCommand(() => setStrip(false), "LED strip turned off.");
-        return;
-    }
-
-    /* LED lamp commands. */
-    if (
-        hasAny(command, [
-            "enable light", "enable led", "light on", "led on",
-            "turn on light", "turn on led", "switch on light",
-            "switch on led", "lamp on"
-        ])
-    ) {
-        performCommand(() => setLED(true), "LED turned on.");
-        return;
-    }
-
-    if (
-        hasAny(command, [
-            "disable light", "disable led", "light off", "led off",
-            "turn off light", "turn off led", "switch off light",
-            "switch off led", "lamp off"
-        ])
-    ) {
-        performCommand(() => setLED(false), "LED turned off.");
-        return;
-    }
-
-    /* Ignore incomplete interim speech; only final results reach here. */
-    speakMessage("Command not recognized. Please try again.");
+    showStatus('I heard "' + rawText + '". Command not matched.');
 }
 
+/* OUT confirmation actions */
+function confirmOut() {
+    if (!pendingOutConfirmation) return;
+
+    pendingOutConfirmation = false;
+    confirmationElement.hidden = true;
+
+    performCommand(turnEverythingOff, "All appliances turned off.");
+}
+
+function cancelOut() {
+    pendingOutConfirmation = false;
+    confirmationElement.hidden = true;
+    speakMessage("Cancelled.");
+}
+
+/* Start voice recognition */
 function startVoice() {
     if (!SpeechRecognition) {
         speakMessage(
-            "Voice recognition is not supported in this browser. Please use Chrome."
+            "Voice recognition is unavailable. Please use Google Chrome."
         );
         return;
     }
 
     if (listening) return;
 
+    shouldListen = true;
+    createRecognition();
+}
+
+function createRecognition() {
+    if (!shouldListen || !SpeechRecognition) return;
+
     recognition = new SpeechRecognition();
     recognition.lang = "en-IN";
     recognition.continuous = true;
     recognition.interimResults = true;
-    recognition.maxAlternatives = 3;
+    recognition.maxAlternatives = 5;
 
     recognition.onstart = () => {
         listening = true;
@@ -671,35 +647,37 @@ function startVoice() {
     };
 
     recognition.onresult = event => {
-        let finalText = "";
-
         for (let i = event.resultIndex; i < event.results.length; i++) {
             const result = event.results[i];
 
-            if (result.isFinal) {
-                /*
-                 Use the best result, with alternative results as fallbacks.
-                 This helps when the recognizer slightly changes a phrase.
-                */
-                const alternatives = [];
+            if (!result.isFinal) continue;
 
-                for (let j = 0; j < result.length; j++) {
-                    alternatives.push(result[j].transcript);
-                }
+            /*
+             Use the best transcript rather than joining alternatives.
+             Joining alternatives can create an invalid command.
+            */
+            const spokenText = result[0].transcript.trim();
 
-                finalText = alternatives.join(" ").trim();
+            console.log("Final speech result:", spokenText);
+
+            if (!spokenText) continue;
+
+            /* Avoid accidental duplicate commands. */
+            const now = Date.now();
+            const normalized = normalizeCommand(spokenText);
+
+            if (
+                normalized === lastProcessedText &&
+                now - lastProcessedAt < 1800
+            ) {
+                continue;
             }
+
+            lastProcessedText = normalized;
+            lastProcessedAt = now;
+
+            processCommand(spokenText);
         }
-
-        if (!finalText) return;
-
-        /* Prevent duplicate processing of nearly identical results. */
-        const now = Date.now();
-
-        if (now - lastCommandTime < 1000) return;
-
-        lastCommandTime = now;
-        processCommand(finalText);
     };
 
     recognition.onerror = event => {
@@ -707,61 +685,75 @@ function startVoice() {
 
         if (event.error === "not-allowed" ||
             event.error === "service-not-allowed") {
-            listening = false;
-            showStatus("Microphone permission is required.");
+            showStatus("Allow microphone access in your browser.");
+        } else if (event.error === "audio-capture") {
+            showStatus("No microphone was detected.");
+        } else if (event.error === "network") {
+            showStatus("Speech recognition network error. Try again.");
         } else if (event.error !== "no-speech" &&
                    event.error !== "aborted") {
-            showStatus("Voice recognition had a problem. Try speaking again.");
+            showStatus("Voice recognition error: " + event.error);
         }
     };
 
     recognition.onend = () => {
         listening = false;
 
-        /* Restart listening unless the user stopped it. */
-        if (recognition && recognition._shouldContinue) {
-            try {
-                recognition._shouldContinue = false;
-                startVoice();
-            } catch (error) {
-                console.error(error);
-            }
+        if (shouldListen) {
+            /* Restart after Chrome finishes a recognition session. */
+            setTimeout(() => {
+                if (shouldListen && !listening) {
+                    createRecognition();
+                }
+            }, 300);
         }
     };
-
-    recognition._shouldContinue = true;
 
     try {
         recognition.start();
     } catch (error) {
-        console.error(error);
+        console.error("Could not start recognition:", error);
         listening = false;
-        showStatus("Could not start the microphone. Please try again.");
+        showStatus("Could not start the microphone. Try again.");
     }
 }
 
 function stopVoice() {
+    shouldListen = false;
+    listening = false;
+
     if (recognition) {
-        recognition._shouldContinue = false;
-        recognition.stop();
+        recognition.onend = null;
+
+        try {
+            recognition.stop();
+        } catch (error) {
+            console.log(error);
+        }
+
+        recognition = null;
     }
 
-    listening = false;
     showStatus("Voice control stopped.");
 }
 
+/* Sensor values */
 async function refreshSensors() {
     try {
-        const temperature = await blynkRead("V3");
-        const light = await blynkRead("V4");
+        const [temperature, light] = await Promise.all([
+            blynkRead("V3"),
+            blynkRead("V4")
+        ]);
 
         document.getElementById("temperature").textContent =
-            temperature !== undefined && temperature !== null
-                ? `${temperature} °C`
+            temperature !== null && temperature !== undefined
+                ? temperature + " °C"
                 : "-- °C";
 
         document.getElementById("lightValue").textContent =
-            light !== undefined && light !== null ? light : "--";
+            light !== null && light !== undefined
+                ? light
+                : "--";
     } catch (error) {
         console.error("Sensor refresh failed:", error);
     }
@@ -770,6 +762,5 @@ async function refreshSensors() {
 setInterval(refreshSensors, 4000);
 refreshSensors();
 </script>
-
 </body>
 </html>
