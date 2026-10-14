@@ -484,8 +484,6 @@ async function refreshModes() {
         blynk("get", "V6")
       ]);
 
-    showState("unusedFanStatus", "Fan", fan);
-
     const tempNumber = Number(temp);
     document.getElementById("temperature").textContent =
       temp.trim() !== "" && Number.isFinite(tempNumber)
