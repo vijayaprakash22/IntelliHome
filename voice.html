@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -21,9 +22,7 @@
   --shadow: 0 16px 40px rgba(0,0,0,.22);
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
   margin: 0;
@@ -34,9 +33,7 @@ body {
   line-height: 1.55;
 }
 
-button, a {
-  font: inherit;
-}
+button, a { font: inherit; }
 
 button {
   min-height: 50px;
@@ -48,13 +45,8 @@ button {
   transition: transform .15s ease, filter .15s ease;
 }
 
-button:hover, a:hover {
-  filter: brightness(1.08);
-}
-
-button:active {
-  transform: scale(.98);
-}
+button:hover, a:hover { filter: brightness(1.08); }
+button:active { transform: scale(.98); }
 
 button:focus-visible, a:focus-visible {
   outline: 3px solid var(--cyan);
@@ -70,19 +62,27 @@ button:focus-visible, a:focus-visible {
   gap: 17px;
 }
 
+/* LOGO BOX */
 .logo-slot {
   width: 76px;
   height: 76px;
   flex: 0 0 76px;
-  border: 2px dashed #58708f;
+  border: 2px solid #293951;
   border-radius: 19px;
-  display: grid;
-  place-items: center;
-  color: #b7c8df;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
   background: #111e31;
-  text-align: center;
-  font-size: 11px;
-  line-height: 1.25;
+  padding: 4px;
+}
+
+.logo-slot img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  border-radius: 12px;
 }
 
 .brand {
@@ -92,13 +92,8 @@ button:focus-visible, a:focus-visible {
   line-height: 1.05;
 }
 
-.brand .intel {
-  color: #f5f8ff;
-}
-
-.brand .home {
-  color: var(--cyan);
-}
+.brand .intel { color: #f5f8ff; }
+.brand .home { color: var(--cyan); }
 
 .subtitle {
   margin-top: 8px;
@@ -395,21 +390,15 @@ button:focus-visible, a:focus-visible {
 }
 
 @keyframes pulse {
-  50% {
-    box-shadow: 0 0 0 11px rgba(45,212,167,0);
-  }
+  50% { box-shadow: 0 0 0 11px rgba(45,212,167,0); }
 }
 
 @media(max-width: 800px) {
-  .hero {
-    grid-template-columns: 1fr;
-  }
+  .hero { grid-template-columns: 1fr; }
 }
 
 @media(max-width: 600px) {
-  body {
-    font-size: 16px;
-  }
+  body { font-size: 16px; }
 
   .topbar {
     align-items: flex-start;
@@ -420,41 +409,21 @@ button:focus-visible, a:focus-visible {
   .logo-slot {
     width: 60px;
     height: 60px;
-    flex-basis: 60px;
+    flex: 0 0 60px;
     border-radius: 15px;
+    padding: 3px;
   }
 
-  .brand {
-    font-size: 30px;
-  }
+  .brand { font-size: 30px; }
+  .subtitle { font-size: 14px; }
+  .container { width: calc(100% - 28px); }
 
-  .subtitle {
-    font-size: 14px;
-  }
+  .mode-grid, .readings { grid-template-columns: 1fr; }
 
-  .container {
-    width: calc(100% - 28px);
-  }
-
-  .mode-grid, .readings {
-    grid-template-columns: 1fr;
-  }
-
-  .panel, .card {
-    padding: 20px;
-  }
-
-  .hero h1 {
-    font-size: 31px;
-  }
-
-  .section-title {
-    font-size: 21px;
-  }
-
-  .confirm-row {
-    grid-template-columns: 1fr;
-  }
+  .panel, .card { padding: 20px; }
+  .hero h1 { font-size: 31px; }
+  .section-title { font-size: 21px; }
+  .confirm-row { grid-template-columns: 1fr; }
 }
 
 @media(prefers-reduced-motion: reduce) {
@@ -469,8 +438,11 @@ button:focus-visible, a:focus-visible {
 <body>
 
 <header class="topbar">
-  <div class="logo-slot" aria-label="Reserved space for IntelliHome logo">
-    <img src="IntelliHome Smart Living Emblem.png" alt="Intelli_logo">
+  <div class="logo-slot">
+    <img
+      src="IntelliHome Smart Living Emblem.png"
+      alt="IntelliHome Logo"
+    >
   </div>
 
   <div>
@@ -529,7 +501,6 @@ button:focus-visible, a:focus-visible {
       <h2 class="side-title">Try saying</h2>
 
       <div class="command-list">
-
         <div class="command-item">
           <strong>“Study mode”</strong>
           <span>Fan, LED lamp, and LED strip ON</span>
@@ -569,7 +540,6 @@ button:focus-visible, a:focus-visible {
           <strong>“Out”</strong>
           <span>Ask for confirmation before turning everything OFF</span>
         </div>
-
       </div>
     </aside>
 
@@ -601,10 +571,8 @@ button:focus-visible, a:focus-visible {
   <h2 class="section-title">Quick scenes</h2>
 
   <section class="mode-grid" aria-label="Scene descriptions">
-
     <article class="card scene">
       <div class="scene-icon" aria-hidden="true">📚</div>
-
       <div>
         <h3>Study Mode</h3>
         <p>
@@ -615,7 +583,6 @@ button:focus-visible, a:focus-visible {
 
     <article class="card scene">
       <div class="scene-icon" aria-hidden="true">🌙</div>
-
       <div>
         <h3>Good Night</h3>
         <p>
@@ -623,13 +590,11 @@ button:focus-visible, a:focus-visible {
         </p>
       </div>
     </article>
-
   </section>
 
   <h2 class="section-title">Live sensor readings</h2>
 
   <section class="readings">
-
     <div class="reading">
       <div class="reading-label">🌡️ Temperature</div>
       <strong id="temperature">-- °C</strong>
@@ -643,7 +608,6 @@ button:focus-visible, a:focus-visible {
         Waiting for LDR reading
       </div>
     </div>
-
   </section>
 
   <div id="connectionStatus" class="connection" role="status" aria-live="polite">
@@ -657,13 +621,11 @@ button:focus-visible, a:focus-visible {
 </main>
 
 <script>
-
-// Add your new Blynk device Auth Token here.
+// Enter your current Blynk device Auth Token here.
 // Do not publish this token on a public website.
 const BLYNK_TOKEN = "lJgZ3C-OWVYFNTLIOb_3wobsZzHyHsFF";
 
 const API = "https://blynk.cloud/external/api";
-
 const LDR_THRESHOLD = 2000;
 const DARK_READING_IS_HIGH = true;
 
@@ -671,6 +633,7 @@ let pendingConfirmation = false;
 let confirmationRecognition = null;
 let mainRecognition = null;
 let confirmationResolved = false;
+let voiceShouldRun = false;
 
 const SpeechRecognition =
   window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -678,7 +641,6 @@ const SpeechRecognition =
 
 // BLYNK API
 async function blynk(action, pin, value) {
-
   if (
     !BLYNK_TOKEN ||
     BLYNK_TOKEN === "PASTE_YOUR_NEW_BLYNK_AUTH_TOKEN_HERE"
@@ -705,14 +667,12 @@ async function blynk(action, pin, value) {
 
 // STATUS MESSAGE
 function setStatus(message) {
-  document.getElementById("status").textContent =
-    "Status: " + message;
+  document.getElementById("status").textContent = "Status: " + message;
 }
 
 
 // TEXT-TO-SPEECH
 function speakMessage(message, callback) {
-
   if (
     !("speechSynthesis" in window) ||
     typeof SpeechSynthesisUtterance === "undefined"
@@ -724,113 +684,438 @@ function speakMessage(message, callback) {
   window.speechSynthesis.cancel();
 
   const utterance = new SpeechSynthesisUtterance(message);
-
   utterance.lang = "en-IN";
   utterance.rate = 0.92;
 
-  if (callback) {
-    utterance.onend = callback;
-  }
+  // Prefer a male English voice if the browser has one installed.
+  const voices = window.speechSynthesis.getVoices();
+  const maleVoice = voices.find(voice =>
+    /male|david|mark|daniel|james|guy/i.test(voice.name) &&
+    /^en(-|_)/i.test(voice.lang)
+  );
 
+  if (maleVoice) utterance.voice = maleVoice;
+
+  if (callback) utterance.onend = callback;
   window.speechSynthesis.speak(utterance);
 }
 
 
 // MICROPHONE STATUS
 function setMicState(message, listening = false) {
-
   document.getElementById("micStateText").textContent = message;
-
   document.getElementById("micState")
     .classList.toggle("listening", listening);
 }
 
 
-// MANUAL APPLIANCE CONTROL THROUGH VOICE ONLY
-async function manualCommand(pin, value, shouldSpeak = true) {
-
+// REFRESH SENSOR READINGS AND CONNECTION STATUS
+async function refreshStatus() {
   try {
+    const [temperature, light] = await Promise.all([
+      blynk("get", "V3"),
+      blynk("get", "V4")
+    ]);
 
-    // Disable the corresponding automation before manual control.
-    if (pin === "V0") {
-      await blynk("update", "V5", 0);
-    }
+    const tempValue = Number(temperature);
+    const lightValue = Number(light);
 
-    if (pin === "V1") {
-      await blynk("update", "V6", 0);
-    }
+    document.getElementById("temperature").textContent =
+      Number.isFinite(tempValue) ? `${tempValue} °C` : "-- °C";
+
+    document.getElementById("lightValue").textContent =
+      Number.isFinite(lightValue) ? String(lightValue) : "--";
+
+    let isDark = DARK_READING_IS_HIGH
+      ? lightValue >= LDR_THRESHOLD
+      : lightValue <= LDR_THRESHOLD;
+
+    document.getElementById("roomCondition").textContent =
+      Number.isFinite(lightValue)
+        ? (isDark ? "Room is dark" : "Room has sufficient light")
+        : "Waiting for LDR reading";
+
+    document.getElementById("connectionStatus").textContent =
+      "Connected to Blynk • Sensor readings updated";
+
+  } catch (error) {
+    document.getElementById("connectionStatus").textContent =
+      "Blynk connection issue: " + error.message;
+  }
+}
+
+
+// VOICE COMMAND: FAN OR LED LAMP
+async function manualCommand(pin, value, shouldSpeak = true) {
+  try {
+    // Turn off the relevant automatic mode before manual control.
+    if (pin === "V0") await blynk("update", "V5", 0);
+    if (pin === "V1") await blynk("update", "V6", 0);
 
     await blynk("update", pin, value);
 
-    const appliance = pin === "V0" ? "Fan" : "LED lamp";
+    const appliance = pin === "V0" ? "Fan" : "LED";
     const message = `${appliance} turned ${value ? "on" : "off"}.`;
 
     setStatus(message);
-
     await refreshStatus();
 
-    if (shouldSpeak) {
-      speakMessage(message);
-    }
-
+    if (shouldSpeak) speakMessage(message);
   } catch (error) {
-
     setStatus(error.message);
-
-    if (shouldSpeak) {
-      speakMessage("Sorry, the command failed.");
-    }
+    if (shouldSpeak) speakMessage("Sorry, the command failed.");
   }
 }
 
 
-// LED STRIP CONTROL THROUGH VOICE
+// VOICE COMMAND: LED STRIP
 async function sendToBlynk(pin, value, shouldSpeak = true) {
-
   try {
-
     await blynk("update", pin, value);
 
-    const message =
-      `LED strip turned ${value ? "on" : "off"}.`;
-
+    const message = `LED strip turned ${value ? "on" : "off"}.`;
     setStatus(message);
-
     await refreshStatus();
 
-    if (shouldSpeak) {
-      speakMessage(message);
-    }
-
+    if (shouldSpeak) speakMessage(message);
   } catch (error) {
-
     setStatus(error.message);
-
-    if (shouldSpeak) {
-      speakMessage("Sorry, the command failed.");
-    }
+    if (shouldSpeak) speakMessage("Sorry, the command failed.");
   }
 }
 
 
-// AUTOMATION CONTROL THROUGH VOICE
+// VOICE COMMAND: AUTOMATION
 async function setAuto(pin, value, shouldSpeak = true) {
-
   try {
-
     await blynk("update", pin, value);
 
     const appliance = pin === "V5" ? "fan" : "LED";
-
     const message =
       `Automatic ${appliance} control ${value ? "enabled" : "disabled"}.`;
 
     setStatus(message);
-
     await refreshStatus();
 
-    if (shouldSpeak) {
-      speakMessage(message);
+    if (shouldSpeak) speakMessage(message);
+  } catch (error) {
+    setStatus(error.message);
+    if (shouldSpeak) speakMessage("Sorry, the command failed.");
+  }
+}
+
+
+// STUDY MODE AND GOOD NIGHT MODE
+async function applyScene(scene) {
+  try {
+    // Disable automation so it does not override the chosen scene.
+    await blynk("update", "V5", 0);
+    await blynk("update", "V6", 0);
+
+    if (scene === "study") {
+      await blynk("update", "V0", 1);
+      await blynk("update", "V1", 1);
+      await blynk("update", "V2", 1);
+
+      setStatus("Study mode activated.");
+      speakMessage("Study mode activated.");
+    } else {
+      await blynk("update", "V0", 1);
+      await blynk("update", "V1", 0);
+      await blynk("update", "V2", 0);
+
+      setStatus("Good Night mode activated.");
+      speakMessage("Good Night mode activated.");
     }
 
-  } catch (error)
+    await refreshStatus();
+  } catch (error) {
+    setStatus(error.message);
+    speakMessage("Sorry, the scene could not be activated.");
+  }
+}
+
+
+// ASK BEFORE TURNING EVERYTHING OFF
+function askConfirmation() {
+  pendingConfirmation = true;
+  confirmationResolved = false;
+
+  document.getElementById("confirmPopup").style.display = "block";
+  setStatus("Please confirm before turning everything off.");
+
+  speakMessage(
+    "Do you want to turn off all appliances? Say Confirm or Cancel.",
+    startConfirmationListening
+  );
+}
+
+
+// CONFIRMATION VOICE RECOGNITION
+function startConfirmationListening() {
+  if (!SpeechRecognition || !pendingConfirmation) return;
+
+  stopConfirmationListening();
+
+  confirmationRecognition = new SpeechRecognition();
+  confirmationRecognition.lang = "en-IN";
+  confirmationRecognition.continuous = false;
+  confirmationRecognition.interimResults = false;
+
+  confirmationRecognition.onresult = event => {
+    const answer = event.results[0][0].transcript
+      .toLowerCase().trim();
+
+    if (/\b(confirm|yes|turn everything off|turn them off)\b/.test(answer)) {
+      confirmAllOff();
+    } else if (/\b(cancel|no|don't|do not)\b/.test(answer)) {
+      cancelAllOff();
+    } else {
+      setStatus("Please say Confirm or Cancel.");
+      speakMessage(
+        "Please say Confirm or Cancel.",
+        startConfirmationListening
+      );
+    }
+  };
+
+  confirmationRecognition.onerror = () => {
+    setMicState("Use the Confirm or Cancel buttons if voice confirmation fails.");
+  };
+
+  try {
+    confirmationRecognition.start();
+  } catch (error) {
+    // Recognition may already be starting.
+  }
+}
+
+
+function stopConfirmationListening() {
+  if (confirmationRecognition) {
+    try {
+      confirmationRecognition.onresult = null;
+      confirmationRecognition.stop();
+    } catch (error) {}
+    confirmationRecognition = null;
+  }
+}
+
+
+// TURN ALL APPLIANCES OFF AFTER CONFIRMATION
+async function confirmAllOff() {
+  if (!pendingConfirmation || confirmationResolved) return;
+
+  confirmationResolved = true;
+  pendingConfirmation = false;
+  stopConfirmationListening();
+
+  document.getElementById("confirmPopup").style.display = "none";
+
+  try {
+    await blynk("update", "V5", 0);
+    await blynk("update", "V6", 0);
+    await blynk("update", "V0", 0);
+    await blynk("update", "V1", 0);
+    await blynk("update", "V2", 0);
+
+    setStatus("All appliances turned off.");
+    speakMessage("All appliances turned off.");
+    await refreshStatus();
+  } catch (error) {
+    setStatus(error.message);
+    speakMessage("Sorry, I could not turn everything off.");
+  }
+}
+
+
+// CANCEL THE ALL-OFF REQUEST
+function cancelAllOff() {
+  if (!pendingConfirmation) return;
+
+  pendingConfirmation = false;
+  confirmationResolved = true;
+  stopConfirmationListening();
+
+  document.getElementById("confirmPopup").style.display = "none";
+  setStatus("All-off command cancelled.");
+  speakMessage("Cancelled. Your appliances were not changed.");
+}
+
+
+// PROCESS SPOKEN COMMANDS
+async function processCommand(rawCommand) {
+  const command = rawCommand.toLowerCase().trim();
+
+  document.getElementById("heard").textContent = rawCommand;
+
+  if (!command) return;
+
+  if (pendingConfirmation) {
+    if (/\b(confirm|yes|turn everything off)\b/.test(command)) {
+      await confirmAllOff();
+    } else if (/\b(cancel|no|don't|do not)\b/.test(command)) {
+      cancelAllOff();
+    } else {
+      setStatus("Please say Confirm or Cancel.");
+      speakMessage("Please say Confirm or Cancel.");
+    }
+    return;
+  }
+
+  if (/\b(out|leaving home|going out|away mode)\b/.test(command)) {
+    askConfirmation();
+    return;
+  }
+
+  if (/\b(study mode|study scene)\b/.test(command)) {
+    await applyScene("study");
+    return;
+  }
+
+  if (/\b(good ?night|good night mode|night mode)\b/.test(command)) {
+    await applyScene("night");
+    return;
+  }
+
+  if (/\b(enable|turn on|switch on|activate)\b.*\b(automated fan|automatic fan|fan automation|fan auto)\b/.test(command)) {
+    await setAuto("V5", 1);
+    return;
+  }
+
+  if (/\b(disable|turn off|switch off|deactivate)\b.*\b(automated fan|automatic fan|fan automation|fan auto)\b/.test(command)) {
+    await setAuto("V5", 0);
+    return;
+  }
+
+  if (/\b(enable|turn on|switch on|activate)\b.*\b(automated led|automatic led|led automation|light automation|automatic light)\b/.test(command)) {
+    await setAuto("V6", 1);
+    return;
+  }
+
+  if (/\b(disable|turn off|switch off|deactivate)\b.*\b(automated led|automatic led|led automation|light automation|automatic light)\b/.test(command)) {
+    await setAuto("V6", 0);
+    return;
+  }
+
+  if (/\b(enable|turn on|switch on)\b.*\bfan\b/.test(command)) {
+    await manualCommand("V0", 1);
+    return;
+  }
+
+  if (/\b(disable|turn off|switch off)\b.*\bfan\b/.test(command)) {
+    await manualCommand("V0", 0);
+    return;
+  }
+
+  if (/\b(enable|turn on|switch on)\b.*\b(led strip|strip|strip light)\b/.test(command)) {
+    await sendToBlynk("V2", 1);
+    return;
+  }
+
+  if (/\b(disable|turn off|switch off)\b.*\b(led strip|strip|strip light)\b/.test(command)) {
+    await sendToBlynk("V2", 0);
+    return;
+  }
+
+  if (/\b(enable|turn on|switch on)\b.*\b(led|light|lamp)\b/.test(command)) {
+    await manualCommand("V1", 1);
+    return;
+  }
+
+  if (/\b(disable|turn off|switch off)\b.*\b(led|light|lamp)\b/.test(command)) {
+    await manualCommand("V1", 0);
+    return;
+  }
+
+  if (/\b(confirm|yes)\b/.test(command)) {
+    setStatus("There is no pending confirmation.");
+    speakMessage("There is nothing to confirm.");
+    return;
+  }
+
+  if (/\b(cancel|no)\b/.test(command)) {
+    setStatus("There is no pending action to cancel.");
+    speakMessage("There is nothing to cancel.");
+    return;
+  }
+
+  setStatus("Command not recognized.");
+  speakMessage("Sorry, I did not understand that command.");
+}
+
+
+// START VOICE RECOGNITION
+function startVoice() {
+  if (!SpeechRecognition) {
+    setStatus("Voice recognition is not supported in this browser.");
+    speakMessage("Please use a supported browser such as Chrome.");
+    return;
+  }
+
+  if (mainRecognition) {
+    try { mainRecognition.stop(); } catch (error) {}
+  }
+
+  voiceShouldRun = true;
+  mainRecognition = new SpeechRecognition();
+  mainRecognition.lang = "en-IN";
+  mainRecognition.continuous = true;
+  mainRecognition.interimResults = false;
+
+  mainRecognition.onstart = () => {
+    setMicState("Listening for commands…", true);
+    setStatus("Microphone is listening.");
+  };
+
+  mainRecognition.onresult = event => {
+    const lastResult = event.results[event.results.length - 1];
+    if (lastResult.isFinal) {
+      processCommand(lastResult[0].transcript);
+    }
+  };
+
+  mainRecognition.onerror = event => {
+    if (event.error !== "no-speech") {
+      setStatus("Voice recognition error: " + event.error);
+    }
+  };
+
+  mainRecognition.onend = () => {
+    if (voiceShouldRun && !pendingConfirmation) {
+      try { mainRecognition.start(); } catch (error) {}
+    } else if (!pendingConfirmation) {
+      setMicState("Microphone is ready", false);
+    }
+  };
+
+  try {
+    mainRecognition.start();
+  } catch (error) {
+    setStatus("Could not start the microphone. Please try again.");
+  }
+}
+
+
+// STOP VOICE RECOGNITION
+function stopVoice() {
+  voiceShouldRun = false;
+
+  if (mainRecognition) {
+    try { mainRecognition.stop(); } catch (error) {}
+    mainRecognition = null;
+  }
+
+  stopConfirmationListening();
+  setMicState("Microphone stopped", false);
+  setStatus("Voice listening stopped.");
+}
+
+
+// Initial sensor refresh and periodic updates
+refreshStatus();
+setInterval(refreshStatus, 3000);
+</script>
+
+</body>
+</html>
