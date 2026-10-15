@@ -61,6 +61,7 @@ button:focus-visible, a:focus-visible {
   gap: 17px;
 }
 
+/* LOGO BOX */
 .logo-slot {
   width: 76px;
   height: 76px;
@@ -437,7 +438,10 @@ button:focus-visible, a:focus-visible {
 
 <header class="topbar">
   <div class="logo-slot">
-    <img src="IntelliHome Smart Living Emblem.png" alt="IntelliHome Logo">
+    <img
+      src="IntelliHome Smart Living Emblem.png"
+      alt="IntelliHome Logo"
+    >
   </div>
 
   <div>
@@ -458,8 +462,8 @@ button:focus-visible, a:focus-visible {
       <h1>Your home.<br>Your voice.</h1>
 
       <p class="intro">
-        Speak a command to control your appliances, activate scenes,
-        manage automation, or check sensor readings.
+        Tap Start Listening and speak a command to control your appliances,
+        activate scenes, manage automation, or check sensor readings.
       </p>
 
       <button id="startButton" class="listen-button" onclick="startVoice()">
@@ -487,8 +491,8 @@ button:focus-visible, a:focus-visible {
       </div>
 
       <div class="voice-note">
-        Allow microphone access when prompted. Automatic microphone startup
-        depends on your browser's security restrictions.
+        Use a supported browser and allow microphone access.
+        Spoken replies use your browser's speech feature.
       </div>
     </div>
 
@@ -496,16 +500,6 @@ button:focus-visible, a:focus-visible {
       <h2 class="side-title">Try saying</h2>
 
       <div class="command-list">
-        <div class="command-item">
-          <strong>“Enable voice control”</strong>
-          <span>Activate appliance voice commands</span>
-        </div>
-
-        <div class="command-item">
-          <strong>“Disable voice control”</strong>
-          <span>Return to standby mode</span>
-        </div>
-
         <div class="command-item">
           <strong>“Study mode”</strong>
           <span>Fan, LED lamp, and LED strip ON</span>
@@ -580,7 +574,9 @@ button:focus-visible, a:focus-visible {
       <div class="scene-icon" aria-hidden="true">📚</div>
       <div>
         <h3>Study Mode</h3>
-        <p>Say “Study mode” to turn the fan, LED lamp, and LED strip ON.</p>
+        <p>
+          Say “Study mode” to turn the fan, LED lamp, and LED strip ON.
+        </p>
       </div>
     </article>
 
@@ -588,7 +584,9 @@ button:focus-visible, a:focus-visible {
       <div class="scene-icon" aria-hidden="true">🌙</div>
       <div>
         <h3>Good Night</h3>
-        <p>Say “Goodnight” to turn the fan ON and both lights OFF.</p>
+        <p>
+          Say “Goodnight” to turn the fan ON and both lights OFF.
+        </p>
       </div>
     </article>
   </section>
@@ -605,7 +603,9 @@ button:focus-visible, a:focus-visible {
     <div class="reading">
       <div class="reading-label">☀️ Light level</div>
       <strong id="lightValue">--</strong>
-      <div id="roomCondition" class="small">Waiting for LDR reading</div>
+      <div id="roomCondition" class="small">
+        Waiting for LDR reading
+      </div>
     </div>
   </section>
 
@@ -620,41 +620,31 @@ button:focus-visible, a:focus-visible {
 </main>
 
 <script>
-// ============================================
-// INTELLIHOME VOICE CONTROL
-// ============================================
-
-// IMPORTANT: Use a newly generated Blynk Auth Token.
+// Enter your current Blynk device Auth Token here.
+// Do not publish this token on a public website.
 const BLYNK_TOKEN = "lJgZ3C-OWVYFNTLIOb_3wobsZzHyHsFF";
 
 const API = "https://blynk.cloud/external/api";
 const LDR_THRESHOLD = 2000;
 const DARK_READING_IS_HIGH = true;
 
+let pendingConfirmation = false;
+let confirmationRecognition = null;
+let mainRecognition = null;
+let confirmationResolved = false;
+let voiceShouldRun = false;
+
 const SpeechRecognition =
   window.SpeechRecognition || window.webkitSpeechRecognition;
 
-let voiceControlEnabled = false;
-let voiceShouldRun = false;
-let mainRecognition = null;
-let pendingConfirmation = false;
-let isStarting = false;
-let isProcessingCommand = false;
-let restartTimer = null;
-let lastCommandText = "";
-let lastCommandTime = 0;
 
-
-// ============================================
 // BLYNK API
-// ============================================
-
 async function blynk(action, pin, value) {
   if (
     !BLYNK_TOKEN ||
     BLYNK_TOKEN === "PASTE_YOUR_NEW_BLYNK_AUTH_TOKEN_HERE"
   ) {
-    throw new Error("Please configure your Blynk Auth Token.");
+    throw new Error("Please add your Blynk Auth Token in voice.html.");
   }
 
   let url =
@@ -674,23 +664,18 @@ async function blynk(action, pin, value) {
 }
 
 
-// ============================================
-// STATUS AND SPOKEN RESPONSES
-// ============================================
-
+// STATUS MESSAGE
 function setStatus(message) {
   document.getElementById("status").textContent = "Status: " + message;
 }
 
-function setMicState(message, listening = false) {
-  document.getElementById("micStateText").textContent = message;
 
-  document.getElementById("micState")
-    .classList.toggle("listening", listening);
-}
-
+// TEXT-TO-SPEECH
 function speakMessage(message, callback) {
-  if (!("speechSynthesis" in window)) {
+  if (
+    !("speechSynthesis" in window) ||
+    typeof SpeechSynthesisUtterance === "undefined"
+  ) {
     if (callback) callback();
     return;
   }
@@ -701,24 +686,29 @@ function speakMessage(message, callback) {
   utterance.lang = "en-IN";
   utterance.rate = 0.92;
 
+  // Prefer a male English voice if the browser has one installed.
   const voices = window.speechSynthesis.getVoices();
-
-  const preferredVoice = voices.find(voice =>
+  const maleVoice = voices.find(voice =>
     /male|david|mark|daniel|james|guy/i.test(voice.name) &&
     /^en(-|_)/i.test(voice.lang)
   );
 
-  if (preferredVoice) utterance.voice = preferredVoice;
-  if (callback) utterance.onend = callback;
+  if (maleVoice) utterance.voice = maleVoice;
 
+  if (callback) utterance.onend = callback;
   window.speechSynthesis.speak(utterance);
 }
 
 
-// ============================================
-// SENSOR READINGS
-// ============================================
+// MICROPHONE STATUS
+function setMicState(message, listening = false) {
+  document.getElementById("micStateText").textContent = message;
+  document.getElementById("micState")
+    .classList.toggle("listening", listening);
+}
 
+
+// REFRESH SENSOR READINGS AND CONNECTION STATUS
 async function refreshStatus() {
   try {
     const [temperature, light] = await Promise.all([
@@ -735,7 +725,7 @@ async function refreshStatus() {
     document.getElementById("lightValue").textContent =
       Number.isFinite(lightValue) ? String(lightValue) : "--";
 
-    const isDark = DARK_READING_IS_HIGH
+    let isDark = DARK_READING_IS_HIGH
       ? lightValue >= LDR_THRESHOLD
       : lightValue <= LDR_THRESHOLD;
 
@@ -754,14 +744,10 @@ async function refreshStatus() {
 }
 
 
-// ============================================
-// APPLIANCE COMMANDS
-// ============================================
-
-async function manualCommand(pin, value) {
-  if (!voiceControlEnabled) return;
-
+// VOICE COMMAND: FAN OR LED LAMP
+async function manualCommand(pin, value, shouldSpeak = true) {
   try {
+    // Turn off the relevant automatic mode before manual control.
     if (pin === "V0") await blynk("update", "V5", 0);
     if (pin === "V1") await blynk("update", "V6", 0);
 
@@ -772,35 +758,34 @@ async function manualCommand(pin, value) {
 
     setStatus(message);
     await refreshStatus();
-    speakMessage(message);
 
+    if (shouldSpeak) speakMessage(message);
   } catch (error) {
     setStatus(error.message);
-    speakMessage("Sorry, the command failed.");
+    if (shouldSpeak) speakMessage("Sorry, the command failed.");
   }
 }
 
-async function controlStrip(value) {
-  if (!voiceControlEnabled) return;
 
+// VOICE COMMAND: LED STRIP
+async function sendToBlynk(pin, value, shouldSpeak = true) {
   try {
-    await blynk("update", "V2", value);
+    await blynk("update", pin, value);
 
     const message = `LED strip turned ${value ? "on" : "off"}.`;
-
     setStatus(message);
     await refreshStatus();
-    speakMessage(message);
 
+    if (shouldSpeak) speakMessage(message);
   } catch (error) {
     setStatus(error.message);
-    speakMessage("Sorry, the command failed.");
+    if (shouldSpeak) speakMessage("Sorry, the command failed.");
   }
 }
 
-async function setAuto(pin, value) {
-  if (!voiceControlEnabled) return;
 
+// VOICE COMMAND: AUTOMATION
+async function setAuto(pin, value, shouldSpeak = true) {
   try {
     await blynk("update", pin, value);
 
@@ -810,23 +795,19 @@ async function setAuto(pin, value) {
 
     setStatus(message);
     await refreshStatus();
-    speakMessage(message);
 
+    if (shouldSpeak) speakMessage(message);
   } catch (error) {
     setStatus(error.message);
-    speakMessage("Sorry, the command failed.");
+    if (shouldSpeak) speakMessage("Sorry, the command failed.");
   }
 }
 
 
-// ============================================
 // STUDY MODE AND GOOD NIGHT MODE
-// ============================================
-
 async function applyScene(scene) {
-  if (!voiceControlEnabled) return;
-
   try {
+    // Disable automation so it does not override the chosen scene.
     await blynk("update", "V5", 0);
     await blynk("update", "V6", 0);
 
@@ -837,7 +818,6 @@ async function applyScene(scene) {
 
       setStatus("Study mode activated.");
       speakMessage("Study mode activated.");
-
     } else {
       await blynk("update", "V0", 1);
       await blynk("update", "V1", 0);
@@ -848,7 +828,6 @@ async function applyScene(scene) {
     }
 
     await refreshStatus();
-
   } catch (error) {
     setStatus(error.message);
     speakMessage("Sorry, the scene could not be activated.");
@@ -856,28 +835,80 @@ async function applyScene(scene) {
 }
 
 
-// ============================================
-// OUT COMMAND AND CONFIRMATION
-// ============================================
-
+// ASK BEFORE TURNING EVERYTHING OFF
 function askConfirmation() {
-  if (pendingConfirmation) return;
-
   pendingConfirmation = true;
+  confirmationResolved = false;
 
   document.getElementById("confirmPopup").style.display = "block";
-
-  setStatus("Waiting for confirmation.");
+  setStatus("Please confirm before turning everything off.");
 
   speakMessage(
-    "Do you want to turn off all appliances? Say Confirm or Cancel."
+    "Do you want to turn off all appliances? Say Confirm or Cancel.",
+    startConfirmationListening
   );
 }
 
-async function confirmAllOff() {
-  if (!pendingConfirmation || !voiceControlEnabled) return;
 
+// CONFIRMATION VOICE RECOGNITION
+function startConfirmationListening() {
+  if (!SpeechRecognition || !pendingConfirmation) return;
+
+  stopConfirmationListening();
+
+  confirmationRecognition = new SpeechRecognition();
+  confirmationRecognition.lang = "en-IN";
+  confirmationRecognition.continuous = false;
+  confirmationRecognition.interimResults = false;
+
+  confirmationRecognition.onresult = event => {
+    const answer = event.results[0][0].transcript
+      .toLowerCase().trim();
+
+    if (/\b(confirm|yes|turn everything off|turn them off)\b/.test(answer)) {
+      confirmAllOff();
+    } else if (/\b(cancel|no|don't|do not)\b/.test(answer)) {
+      cancelAllOff();
+    } else {
+      setStatus("Please say Confirm or Cancel.");
+      speakMessage(
+        "Please say Confirm or Cancel.",
+        startConfirmationListening
+      );
+    }
+  };
+
+  confirmationRecognition.onerror = () => {
+    setMicState("Use the Confirm or Cancel buttons if voice confirmation fails.");
+  };
+
+  try {
+    confirmationRecognition.start();
+  } catch (error) {
+    // Recognition may already be starting.
+  }
+}
+
+
+function stopConfirmationListening() {
+  if (confirmationRecognition) {
+    try {
+      confirmationRecognition.onresult = null;
+      confirmationRecognition.stop();
+    } catch (error) {}
+    confirmationRecognition = null;
+  }
+}
+
+
+// TURN ALL APPLIANCES OFF AFTER CONFIRMATION
+async function confirmAllOff() {
+  if (!pendingConfirmation || confirmationResolved) return;
+
+  confirmationResolved = true;
   pendingConfirmation = false;
+  stopConfirmationListening();
+
   document.getElementById("confirmPopup").style.display = "none";
 
   try {
@@ -888,111 +919,39 @@ async function confirmAllOff() {
     await blynk("update", "V2", 0);
 
     setStatus("All appliances turned off.");
-    await refreshStatus();
     speakMessage("All appliances turned off.");
-
+    await refreshStatus();
   } catch (error) {
     setStatus(error.message);
     speakMessage("Sorry, I could not turn everything off.");
   }
 }
 
+
+// CANCEL THE ALL-OFF REQUEST
 function cancelAllOff() {
   if (!pendingConfirmation) return;
 
   pendingConfirmation = false;
-  document.getElementById("confirmPopup").style.display = "none";
+  confirmationResolved = true;
+  stopConfirmationListening();
 
+  document.getElementById("confirmPopup").style.display = "none";
   setStatus("All-off command cancelled.");
   speakMessage("Cancelled. Your appliances were not changed.");
 }
 
 
-// ============================================
-// VOICE ACTIVATION
-// ============================================
-
-function enableVoiceControl() {
-  if (voiceControlEnabled) {
-    speakMessage("Voice control is already enabled.");
-    return;
-  }
-
-  voiceControlEnabled = true;
-
-  setStatus("Voice control enabled.");
-  setMicState("Voice control active. Listening for commands.", true);
-
-  speakMessage("Voice control enabled. How can I help you?");
-}
-
-function disableVoiceControl() {
-  if (!voiceControlEnabled) {
-    setStatus("Voice control is already disabled.");
-    return;
-  }
-
-  voiceControlEnabled = false;
-  pendingConfirmation = false;
-
-  document.getElementById("confirmPopup").style.display = "none";
-
-  setStatus("Voice control disabled. Waiting for activation.");
-  setMicState("Standby: say Enable voice control.", true);
-
-  speakMessage("Voice control disabled. Say Enable voice control to start again.");
-}
-
-
-// ============================================
 // PROCESS SPOKEN COMMANDS
-// ============================================
-
 async function processCommand(rawCommand) {
   const command = rawCommand.toLowerCase().trim();
 
-  if (!command) return;
-
   document.getElementById("heard").textContent = rawCommand;
 
-  // Prevent duplicate recognition results.
-  const now = Date.now();
+  if (!command) return;
 
-  if (command === lastCommandText && now - lastCommandTime < 1800) {
-    return;
-  }
-
-  lastCommandText = command;
-  lastCommandTime = now;
-
-  const enablePhrase =
-    /\b(enable|activate|start|turn on)\b.*\bvoice control\b/.test(command) ||
-    /\bvoice control\b.*\b(enable|activate|start)\b/.test(command);
-
-  const disablePhrase =
-    /\b(disable|deactivate|stop|turn off)\b.*\bvoice control\b/.test(command) ||
-    /\bvoice control\b.*\b(disable|deactivate|stop)\b/.test(command);
-
-  // These two phrases are accepted even in standby.
-  if (enablePhrase) {
-    enableVoiceControl();
-    return;
-  }
-
-  if (disablePhrase) {
-    disableVoiceControl();
-    return;
-  }
-
-  // Do not execute any appliance command while inactive.
-  if (!voiceControlEnabled) {
-    setStatus("Standby: say Enable voice control.");
-    return;
-  }
-
-  // Confirmation has priority over normal commands.
   if (pendingConfirmation) {
-    if (/\b(confirm|yes|turn everything off|turn them off)\b/.test(command)) {
+    if (/\b(confirm|yes|turn everything off)\b/.test(command)) {
       await confirmAllOff();
     } else if (/\b(cancel|no|don't|do not)\b/.test(command)) {
       cancelAllOff();
@@ -1018,7 +977,6 @@ async function processCommand(rawCommand) {
     return;
   }
 
-  // Automated fan.
   if (/\b(enable|turn on|switch on|activate)\b.*\b(automated fan|automatic fan|fan automation|fan auto)\b/.test(command)) {
     await setAuto("V5", 1);
     return;
@@ -1029,7 +987,6 @@ async function processCommand(rawCommand) {
     return;
   }
 
-  // Automated LED.
   if (/\b(enable|turn on|switch on|activate)\b.*\b(automated led|automatic led|led automation|light automation|automatic light)\b/.test(command)) {
     await setAuto("V6", 1);
     return;
@@ -1040,7 +997,6 @@ async function processCommand(rawCommand) {
     return;
   }
 
-  // Fan.
   if (/\b(enable|turn on|switch on)\b.*\bfan\b/.test(command)) {
     await manualCommand("V0", 1);
     return;
@@ -1051,18 +1007,16 @@ async function processCommand(rawCommand) {
     return;
   }
 
-  // LED strip.
   if (/\b(enable|turn on|switch on)\b.*\b(led strip|strip|strip light)\b/.test(command)) {
-    await controlStrip(1);
+    await sendToBlynk("V2", 1);
     return;
   }
 
   if (/\b(disable|turn off|switch off)\b.*\b(led strip|strip|strip light)\b/.test(command)) {
-    await controlStrip(0);
+    await sendToBlynk("V2", 0);
     return;
   }
 
-  // LED lamp.
   if (/\b(enable|turn on|switch on)\b.*\b(led|light|lamp)\b/.test(command)) {
     await manualCommand("V1", 1);
     return;
@@ -1090,127 +1044,7 @@ async function processCommand(rawCommand) {
 }
 
 
-// ============================================
-// SPEECH RECOGNITION
-// ============================================
-
-function scheduleListeningRestart() {
-  if (!voiceShouldRun || document.hidden) return;
-
-  clearTimeout(restartTimer);
-
-  restartTimer = setTimeout(() => {
-    if (
-      voiceShouldRun &&
-      !document.hidden &&
-      !mainRecognition &&
-      !isStarting
-    ) {
-      beginVoiceRecognition();
-    }
-  }, 1000);
-}
-
-function beginVoiceRecognition() {
-  if (!SpeechRecognition) {
-    setStatus("Voice recognition is not supported in this browser.");
-    setMicState("Voice recognition unavailable.", false);
-    return;
-  }
-
-  if (
-    !voiceShouldRun ||
-    document.hidden ||
-    isStarting ||
-    mainRecognition
-  ) {
-    return;
-  }
-
-  isStarting = true;
-
-  const recognition = new SpeechRecognition();
-  mainRecognition = recognition;
-
-  recognition.lang = "en-IN";
-  recognition.continuous = true;
-  recognition.interimResults = false;
-
-  recognition.onstart = () => {
-    isStarting = false;
-
-    setMicState(
-      voiceControlEnabled
-        ? "Voice control active. Listening for commands."
-        : "Standby: say Enable voice control.",
-      true
-    );
-
-    setStatus(
-      voiceControlEnabled
-        ? "Voice control enabled."
-        : "Waiting for Enable voice control."
-    );
-  };
-
-  recognition.onresult = event => {
-    const result = event.results[event.results.length - 1];
-
-    if (result.isFinal && !isProcessingCommand) {
-      isProcessingCommand = true;
-
-      processCommand(result[0].transcript)
-        .catch(error => {
-          setStatus("Command error: " + error.message);
-        })
-        .finally(() => {
-          isProcessingCommand = false;
-        });
-    }
-  };
-
-  recognition.onerror = event => {
-    isStarting = false;
-
-    if (event.error !== "no-speech" && event.error !== "aborted") {
-      setStatus("Voice recognition error: " + event.error);
-    }
-  };
-
-  recognition.onend = () => {
-    isStarting = false;
-
-    if (mainRecognition === recognition) {
-      mainRecognition = null;
-    }
-
-    if (voiceShouldRun && !document.hidden) {
-      scheduleListeningRestart();
-    } else {
-      setMicState("Microphone stopped.", false);
-    }
-  };
-
-  try {
-    recognition.start();
-  } catch (error) {
-    isStarting = false;
-
-    if (mainRecognition === recognition) {
-      mainRecognition = null;
-    }
-
-    setStatus("Could not start the microphone. Tap Start Listening and allow access.");
-    setMicState("Microphone is ready.", false);
-  }
-}
-
-
-// ============================================
-// START AND STOP BUTTONS
-// ============================================
-
-// Starts standby listening only. Appliance commands remain disabled.
+// START VOICE RECOGNITION
 function startVoice() {
   if (!SpeechRecognition) {
     setStatus("Voice recognition is not supported in this browser.");
@@ -1218,89 +1052,68 @@ function startVoice() {
     return;
   }
 
-  voiceShouldRun = true;
+  if (mainRecognition) {
+    try { mainRecognition.stop(); } catch (error) {}
+  }
 
-  if (!mainRecognition && !isStarting) {
-    beginVoiceRecognition();
+  voiceShouldRun = true;
+  mainRecognition = new SpeechRecognition();
+  mainRecognition.lang = "en-IN";
+  mainRecognition.continuous = true;
+  mainRecognition.interimResults = false;
+
+  mainRecognition.onstart = () => {
+    setMicState("Listening for commands…", true);
+    setStatus("Microphone is listening.");
+  };
+
+  mainRecognition.onresult = event => {
+    const lastResult = event.results[event.results.length - 1];
+    if (lastResult.isFinal) {
+      processCommand(lastResult[0].transcript);
+    }
+  };
+
+  mainRecognition.onerror = event => {
+    if (event.error !== "no-speech") {
+      setStatus("Voice recognition error: " + event.error);
+    }
+  };
+
+  mainRecognition.onend = () => {
+    if (voiceShouldRun && !pendingConfirmation) {
+      try { mainRecognition.start(); } catch (error) {}
+    } else if (!pendingConfirmation) {
+      setMicState("Microphone is ready", false);
+    }
+  };
+
+  try {
+    mainRecognition.start();
+  } catch (error) {
+    setStatus("Could not start the microphone. Please try again.");
   }
 }
 
+
+// STOP VOICE RECOGNITION
 function stopVoice() {
   voiceShouldRun = false;
-  voiceControlEnabled = false;
-  pendingConfirmation = false;
-
-  clearTimeout(restartTimer);
-
-  document.getElementById("confirmPopup").style.display = "none";
 
   if (mainRecognition) {
-    const recognition = mainRecognition;
+    try { mainRecognition.stop(); } catch (error) {}
     mainRecognition = null;
-
-    try {
-      recognition.onend = null;
-      recognition.stop();
-    } catch (error) {}
   }
 
-  isStarting = false;
-
-  setMicState("Microphone stopped.", false);
-  setStatus("Voice listening stopped. Appliance commands are disabled.");
+  stopConfirmationListening();
+  setMicState("Microphone stopped", false);
+  setStatus("Voice listening stopped.");
 }
 
 
-// ============================================
-// STOP LISTENING WHEN THE PAGE IS HIDDEN
-// ============================================
-
-document.addEventListener("visibilitychange", () => {
-  if (document.hidden) {
-    voiceShouldRun = false;
-    voiceControlEnabled = false;
-    pendingConfirmation = false;
-
-    clearTimeout(restartTimer);
-
-    document.getElementById("confirmPopup").style.display = "none";
-
-    if (mainRecognition) {
-      const recognition = mainRecognition;
-      mainRecognition = null;
-
-      try {
-        recognition.onend = null;
-        recognition.stop();
-      } catch (error) {}
-    }
-
-    isStarting = false;
-
-    setMicState("Page hidden. Voice control disabled.", false);
-    setStatus("Voice control disabled because the page is not active.");
-
-  } else {
-    // Return to standby when the page becomes visible again.
-    voiceControlEnabled = false;
-    startVoice();
-  }
-});
-
-
-// ============================================
-// INITIALIZE
-// ============================================
-
+// Initial sensor refresh and periodic updates
 refreshStatus();
 setInterval(refreshStatus, 3000);
-
-// Attempt to start standby listening after page load.
-window.addEventListener("load", () => {
-  setTimeout(() => {
-    startVoice();
-  }, 1000);
-});
 </script>
 
 </body>
